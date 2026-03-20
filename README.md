@@ -9,9 +9,11 @@ AI Native showcase site for Agents, browser extensions, and skills.
 - Vercel Functions 真后台
 - Vercel Blob 内容存储与截图上传
 
-## One-Click Deploy
+## One-Click Update
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Seth360/fuxc.team&project-name=fuxc-team&repository-name=fuxc.team&env=ADMIN_PASSWORD,SESSION_SECRET,BLOB_READ_WRITE_TOKEN&envDescription=Admin%20password%2C%20session%20secret%2C%20and%20Vercel%20Blob%20token)
+[![一键更新](https://img.shields.io/badge/Vercel-%E4%B8%80%E9%94%AE%E6%9B%B4%E6%96%B0-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/new/clone?repository-url=https://github.com/Seth360/fuxc.team&project-name=fuxc-team&repository-name=fuxc.team&env=ADMIN_PASSWORD,SESSION_SECRET,BLOB_READ_WRITE_TOKEN&envDescription=Admin%20password%2C%20session%20secret%2C%20and%20Vercel%20Blob%20token)
+
+说明：这个按钮会跳转到 Vercel 导入/部署流程，适合快速基于当前仓库创建或重新接入项目。
 
 ## Stack
 
