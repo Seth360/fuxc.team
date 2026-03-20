@@ -252,13 +252,47 @@ button {
 }
 
 .admin-card-item {
+  position: relative;
   padding: 18px;
   border-radius: 18px;
+  cursor: grab;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.admin-card-item:hover {
+  transform: translateY(-2px);
+}
+
+.admin-card-item.is-dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+.admin-card-item.is-drag-over {
+  border-color: rgba(255, 154, 61, 0.42);
+  background: rgba(255, 154, 61, 0.08);
 }
 
 .admin-card-item h3 {
   margin: 8px 0 6px;
   font-size: 1.1rem;
+}
+
+.admin-card-grip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .admin-card-item p {
@@ -350,6 +384,28 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.admin-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  z-index: 40;
+  min-width: 220px;
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 14px 18px;
+  border: 1px solid rgba(77, 230, 220, 0.28);
+  border-radius: 999px;
+  background: rgba(6, 15, 28, 0.9);
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  transform: translateX(-50%);
+}
+
+.admin-toast[hidden] {
+  display: none;
 }
 
 .admin-error {

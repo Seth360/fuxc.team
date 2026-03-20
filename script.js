@@ -72,6 +72,31 @@ function getFilteredCards(filter) {
     : siteData.cards.filter((item) => item.type === filter);
 }
 
+function isCardNew(card) {
+  if (!card.createdAt) {
+    return false;
+  }
+
+  const createdTime = new Date(card.createdAt).getTime();
+  if (Number.isNaN(createdTime)) {
+    return false;
+  }
+
+  return Date.now() - createdTime <= 2 * 24 * 60 * 60 * 1000;
+}
+
+function renderCardBadge(card) {
+  if (isCardNew(card)) {
+    return '<span class="card-badge is-new">NEW</span>';
+  }
+
+  if (!card.badge) {
+    return "";
+  }
+
+  return `<span class="card-badge">${escapeHtml(card.badge)}</span>`;
+}
+
 function renderCards(filter) {
   const filtered = getFilteredCards(filter);
   visibleCount.textContent = String(filtered.length).padStart(2, "0");
@@ -82,7 +107,7 @@ function renderCards(filter) {
         <button class="work-card" type="button" data-card-id="${escapeHtml(item.id)}">
           <div class="card-top">
             <span class="card-type">${escapeHtml(item.label)}</span>
-            <span class="card-badge">${escapeHtml(item.badge)}</span>
+            ${renderCardBadge(item)}
           </div>
           <div>
             <h3>${escapeHtml(item.title)}</h3>

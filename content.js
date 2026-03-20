@@ -133,6 +133,8 @@
             .filter(Boolean),
       githubUrl: card.githubUrl || "",
       screenshot: card.screenshot || "",
+      createdAt: card.createdAt || "",
+      updatedAt: card.updatedAt || "",
     };
   }
 

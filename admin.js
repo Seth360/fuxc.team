@@ -45,8 +45,12 @@ const cardGithubInput = document.getElementById("card-github-input");
 const cardScreenshotInput = document.getElementById("card-screenshot-input");
 const cardScreenshotFileInput = document.getElementById("card-screenshot-file-input");
 const cardPreview = document.getElementById("card-preview");
+const adminToast = document.getElementById("admin-toast");
+const adminToastMessage = document.getElementById("admin-toast-message");
 
 let siteData = normalizeSiteData({});
+let draggedCardId = "";
+let toastTimer = null;
 
 function escapeHtml(value) {
   return String(value)
@@ -67,6 +71,19 @@ function getErrorMessage(error, fallback) {
   }
 
   return fallback;
+}
+
+function showToast(message) {
+  adminToastMessage.textContent = message;
+  adminToast.hidden = false;
+
+  if (toastTimer) {
+    window.clearTimeout(toastTimer);
+  }
+
+  toastTimer = window.setTimeout(() => {
+    adminToast.hidden = true;
+  }, 2400);
 }
 
 function switchPage(pageId) {
@@ -102,8 +119,9 @@ function renderCardList() {
   adminCardList.innerHTML = siteData.cards
     .map(
       (card) => `
-        <article class="admin-card-item">
+        <article class="admin-card-item" draggable="true" data-card-id="${card.id}">
           <p class="admin-eyebrow">${escapeHtml(card.label)}</p>
+          <span class="admin-card-grip">Drag</span>
           <h3>${escapeHtml(card.title)}</h3>
           <p>${escapeHtml(card.description)}</p>
           <div class="admin-card-meta">
@@ -201,6 +219,7 @@ async function saveHero() {
       secondaryActionText: heroFields.secondaryActionText.value.trim(),
     },
   });
+  showToast("首屏内容已保存");
 }
 
 async function saveCatalog() {
@@ -213,6 +232,7 @@ async function saveCatalog() {
       description: catalogFields.description.value.trim(),
     },
   });
+  showToast("第二屏标题已保存");
 }
 
 function readImageFile(file) {
@@ -239,6 +259,9 @@ async function handleCardSubmit(event) {
     screenshot = upload.url;
   }
 
+  const currentCard = siteData.cards.find((card) => card.id === cardIdInput.value.trim());
+  const timestamp = new Date().toISOString();
+
   const nextCard = normalizeCard({
     id: cardIdInput.value.trim(),
     type: cardTypeInput.value,
@@ -254,6 +277,8 @@ async function handleCardSubmit(event) {
       .filter(Boolean),
     githubUrl: cardGithubInput.value.trim(),
     screenshot,
+    createdAt: currentCard?.createdAt || timestamp,
+    updatedAt: timestamp,
   });
 
   const exists = siteData.cards.some((card) => card.id === nextCard.id);
@@ -269,6 +294,46 @@ async function handleCardSubmit(event) {
   renderCardList();
   closeCardModal();
   resetCardForm();
+  showToast(exists ? "应用卡片已更新" : "新应用已创建");
+}
+
+async function saveCardOrder(nextCards) {
+  await saveCurrentData({
+    ...siteData,
+    cards: nextCards,
+  });
+  renderCardList();
+  showToast("应用排序已保存");
+}
+
+function clearDragStates() {
+  Array.from(adminCardList.querySelectorAll(".admin-card-item")).forEach((item) => {
+    item.classList.remove("is-dragging", "is-drag-over");
+  });
+}
+
+function reorderCards(dragId, targetId, placeAfter = false) {
+  if (!dragId || !targetId || dragId === targetId) {
+    return siteData.cards;
+  }
+
+  const nextCards = [...siteData.cards];
+  const fromIndex = nextCards.findIndex((card) => card.id === dragId);
+  const targetIndex = nextCards.findIndex((card) => card.id === targetId);
+
+  if (fromIndex === -1 || targetIndex === -1) {
+    return siteData.cards;
+  }
+
+  const [draggedCard] = nextCards.splice(fromIndex, 1);
+  let insertIndex = nextCards.findIndex((card) => card.id === targetId);
+
+  if (placeAfter) {
+    insertIndex += 1;
+  }
+
+  nextCards.splice(insertIndex, 0, draggedCard);
+  return nextCards;
 }
 
 navButtons.forEach((button) => {
@@ -310,6 +375,7 @@ document.getElementById("reset-site").addEventListener("click", async () => {
   siteData = await resetSiteData();
   await refreshData();
   resetCardForm();
+  showToast("内容已恢复为默认值");
 });
 
 adminCardList.addEventListener("click", async (event) => {
@@ -340,6 +406,62 @@ adminCardList.addEventListener("click", async (event) => {
     cards: siteData.cards.filter((item) => item.id !== cardId),
   });
   renderCardList();
+  showToast("应用卡片已删除");
+});
+
+adminCardList.addEventListener("dragstart", (event) => {
+  const card = event.target.closest(".admin-card-item");
+  if (!card) {
+    return;
+  }
+
+  draggedCardId = card.dataset.cardId || "";
+  card.classList.add("is-dragging");
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", draggedCardId);
+});
+
+adminCardList.addEventListener("dragover", (event) => {
+  event.preventDefault();
+  clearDragStates();
+
+  const target = event.target.closest(".admin-card-item");
+  if (target && target.dataset.cardId !== draggedCardId) {
+    target.classList.add("is-drag-over");
+  }
+});
+
+adminCardList.addEventListener("dragleave", (event) => {
+  const target = event.target.closest(".admin-card-item");
+  if (target) {
+    target.classList.remove("is-drag-over");
+  }
+});
+
+adminCardList.addEventListener("dragend", () => {
+  draggedCardId = "";
+  clearDragStates();
+});
+
+adminCardList.addEventListener("drop", async (event) => {
+  event.preventDefault();
+
+  const target = event.target.closest(".admin-card-item");
+  clearDragStates();
+
+  if (!target || !draggedCardId || target.dataset.cardId === draggedCardId) {
+    draggedCardId = "";
+    return;
+  }
+
+  const rect = target.getBoundingClientRect();
+  const placeAfter = event.clientY > rect.top + rect.height / 2;
+  const nextCards = reorderCards(draggedCardId, target.dataset.cardId, placeAfter);
+  draggedCardId = "";
+
+  if (nextCards !== siteData.cards) {
+    await saveCardOrder(nextCards);
+  }
 });
 
 cardModal.addEventListener("click", (event) => {
