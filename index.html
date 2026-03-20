@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>一念即现 | FUXC.TEAM</title>
+    <meta
+      name="description"
+      content="一念即现，所想即得。一个展示 AI 零代码 Agent、浏览器插件与 Skill 的整屏滚动网站。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <aside class="section-rail" aria-label="页面导航">
+      <div class="rail-label">Navigate</div>
+      <button class="rail-dot is-active" data-target="hero" aria-label="跳转到首屏">
+        <span>01</span>
+      </button>
+      <button class="rail-dot" data-target="catalog" aria-label="跳转到作品列表">
+        <span>02</span>
+      </button>
+    </aside>
+
+    <main id="fullpage">
+      <section class="panel hero-panel" id="hero" data-section="hero">
+        <video
+          class="hero-video"
+          src="./topbg.mp4"
+          autoplay
+          muted
+          loop
+          playsinline
+          aria-hidden="true"
+        ></video>
+        <div class="hero-scrim" aria-hidden="true"></div>
+
+        <div class="hero-content">
+          <div class="hero-kicker" id="hero-kicker">FUXC.TEAM / AI MADE, ZERO CODE SHIPPED</div>
+          <div class="hero-copy">
+            <p class="hero-lead" id="hero-lead">AI Native Showcase</p>
+            <h1 id="hero-title">一念即现，所想即得</h1>
+            <p class="hero-subtitle" id="hero-subtitle">Thought is action, inspiration is creation.</p>
+            <p class="hero-description" id="hero-description">
+              把脑海里的想法，变成真正能被点击、使用、传播的产品。这里收纳了我用 AI
+              零代码打造的 Agent、浏览器插件与 Skill。
+            </p>
+          </div>
+
+          <div class="hero-actions">
+            <a class="primary-action" href="#catalog" id="hero-primary-action">查看作品列表</a>
+            <button class="ghost-action" type="button" data-target="catalog" id="hero-secondary-action">
+              向下探索
+            </button>
+          </div>
+
+          <div class="hero-metrics" aria-label="作品类别">
+            <article>
+              <span class="metric-value">Agent</span>
+              <span class="metric-label">自动化执行体</span>
+            </article>
+            <article>
+              <span class="metric-value">Plugin</span>
+              <span class="metric-label">浏览器效率扩展</span>
+            </article>
+            <article>
+              <span class="metric-value">Skill</span>
+              <span class="metric-label">可复用能力模块</span>
+            </article>
+          </div>
+        </div>
+
+        <div class="scroll-cue" aria-hidden="true">
+          <span></span>
+          <p>Scroll for the build catalog</p>
+        </div>
+      </section>
+
+      <section class="panel catalog-panel" id="catalog" data-section="catalog">
+        <div class="catalog-shell">
+          <header class="catalog-header">
+            <div>
+              <p class="section-tag" id="catalog-section-tag">Build Library</p>
+              <h2 id="catalog-title">我的 AI 零代码作品库</h2>
+              <p class="catalog-description" id="catalog-description">
+                第二屏聚合展示我做过的 Agent、浏览器插件与 Skill。下面先放了一组可直接替换的示例卡片，你后续只需要改
+                `script.js` 里的数据即可。
+              </p>
+            </div>
+            <div class="catalog-meta">
+              <span class="meta-label">Visible Items</span>
+              <strong id="visible-count">0</strong>
+            </div>
+          </header>
+
+          <div class="filter-bar" role="tablist" aria-label="作品类别过滤">
+            <button class="filter-chip is-active" data-filter="all" role="tab" aria-selected="true">
+              全部
+            </button>
+            <button class="filter-chip" data-filter="agent" role="tab" aria-selected="false">
+              Agent
+            </button>
+            <button
+              class="filter-chip"
+              data-filter="extension"
+              role="tab"
+              aria-selected="false"
+            >
+              浏览器插件
+            </button>
+            <button class="filter-chip" data-filter="skill" role="tab" aria-selected="false">
+              Skill
+            </button>
+          </div>
+
+          <div class="card-grid" id="card-grid" aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
+
+    <a class="admin-entry" href="./login.html">Push→</a>
+
+    <div class="card-modal" id="card-modal" hidden>
+      <button class="card-modal-backdrop" type="button" aria-label="关闭详情弹窗" data-close-modal></button>
+      <section
+        class="card-modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        <button class="card-modal-close" type="button" aria-label="关闭详情弹窗" data-close-modal>
+          ×
+        </button>
+        <div class="card-modal-visual" id="modal-visual"></div>
+        <div class="card-modal-content">
+          <div class="card-modal-head">
+            <div>
+              <p class="card-modal-label" id="modal-label"></p>
+              <h3 id="modal-title"></h3>
+            </div>
+            <a
+              class="card-modal-link"
+              id="modal-github-link"
+              href="#"
+              target="_blank"
+              rel="noreferrer"
+            >
+              查看 GitHub
+            </a>
+          </div>
+          <p class="card-modal-description" id="modal-description"></p>
+          <div class="card-modal-meta" id="modal-meta"></div>
+          <div class="card-modal-tags" id="modal-tags"></div>
+        </div>
+      </section>
+    </div>
+
+    <script src="./content.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>

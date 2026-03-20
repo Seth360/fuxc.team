@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FUXC.TEAM 后台登录</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./admin.css" />
+  </head>
+  <body class="login-page">
+    <main class="admin-app">
+      <section class="admin-login">
+        <div class="admin-login-card">
+          <p class="admin-eyebrow">FUXC.TEAM CMS</p>
+          <h1>后台登录</h1>
+          <p>输入后台密码后进入内容管理页。</p>
+          <form id="login-form" >
+            <label class="admin-field">
+              <span>后台密码</span>
+              <input id="login-password" type="password" placeholder="请输入密码" required />
+            </label>
+            <button class="admin-button admin-button-primary" type="submit">登录并进入后台</button>
+            <p class="admin-error" id="login-error" hidden>密码不正确，请重新输入。</p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script src="./content.js"></script>
+    <script src="./login.js"></script>
+  </body>
+</html>
