@@ -57,6 +57,18 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function getErrorMessage(error, fallback) {
+  if (error?.payload?.error) {
+    return error.payload.error;
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
 function switchPage(pageId) {
   navButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.page === pageId);
@@ -357,8 +369,12 @@ cardScreenshotFileInput.addEventListener("change", async () => {
 });
 
 cardForm.addEventListener("submit", (event) => {
-  handleCardSubmit(event).catch(() => {
-    window.alert("卡片保存失败，请检查截图文件、环境变量或 Vercel Blob 配置后重试。");
+  handleCardSubmit(event).catch((error) => {
+    const message = getErrorMessage(
+      error,
+      "卡片保存失败，请检查截图文件、环境变量或 Vercel Blob 配置后重试。"
+    );
+    window.alert(`卡片保存失败：${message}`);
   });
 });
 
