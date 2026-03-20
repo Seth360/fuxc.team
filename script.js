@@ -20,7 +20,7 @@ const modalTags = document.getElementById("modal-tags");
 const modalGithubLink = document.getElementById("modal-github-link");
 
 let activeFilter = "all";
-let siteData = normalizeSiteData(getSiteData());
+let siteData = normalizeSiteData({});
 let activeModalCardId = "";
 
 function escapeHtml(value) {
@@ -144,16 +144,16 @@ function closeModal() {
   document.body.classList.remove("modal-open");
 }
 
-function refreshSiteData() {
-  siteData = normalizeSiteData(getSiteData());
+async function refreshSiteData() {
+  siteData = normalizeSiteData(await getSiteData());
   applyHeroContent();
   applyCatalogContent();
   renderCards(activeFilter);
 
   if (activeModalCardId) {
-    const stillExists = siteData.cards.some((item) => item.id === activeModalCardId);
-    if (stillExists) {
-      renderModal(siteData.cards.find((item) => item.id === activeModalCardId));
+    const currentCard = siteData.cards.find((item) => item.id === activeModalCardId);
+    if (currentCard) {
+      renderModal(currentCard);
     } else {
       closeModal();
     }
@@ -201,12 +201,6 @@ cardModal.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !cardModal.hidden) {
     closeModal();
-  }
-});
-
-window.addEventListener("storage", (event) => {
-  if (event.key === window.FUXCSite.STORAGE_KEY) {
-    refreshSiteData();
   }
 });
 

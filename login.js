@@ -1,25 +1,33 @@
 const {
-  ADMIN_PASSWORD,
-  ADMIN_SESSION_KEY,
+  getAdminSession,
+  loginAdmin,
 } = window.FUXCSite;
-
-if (sessionStorage.getItem(ADMIN_SESSION_KEY) === "1") {
-  window.location.replace("./admin.html");
-}
 
 const loginForm = document.getElementById("login-form");
 const loginPasswordInput = document.getElementById("login-password");
 const loginError = document.getElementById("login-error");
 
-loginForm.addEventListener("submit", (event) => {
+async function init() {
+  try {
+    const session = await getAdminSession();
+    if (session.authenticated) {
+      window.location.replace("./admin.html");
+    }
+  } catch (error) {
+    // Ignore auth probe failures and allow manual login.
+  }
+}
+
+loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  if (loginPasswordInput.value === ADMIN_PASSWORD) {
-    sessionStorage.setItem(ADMIN_SESSION_KEY, "1");
+  try {
+    await loginAdmin(loginPasswordInput.value);
     loginError.hidden = true;
     window.location.href = "./admin.html";
-    return;
+  } catch (error) {
+    loginError.hidden = false;
   }
-
-  loginError.hidden = false;
 });
+
+init();

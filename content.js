@@ -1,8 +1,4 @@
 (function () {
-  const STORAGE_KEY = "fuxc.site.content.v1";
-  const ADMIN_SESSION_KEY = "fuxc.site.admin.session";
-  const ADMIN_PASSWORD = "885522";
-
   const DEFAULT_SITE_DATA = {
     hero: {
       kicker: "FUXC.TEAM / AI MADE, ZERO CODE SHIPPED",
@@ -148,10 +144,12 @@
       ...merged.hero,
       ...(input.hero || {}),
     };
+
     merged.catalog = {
       ...merged.catalog,
       ...(input.catalog || {}),
     };
+
     merged.cards = Array.isArray(input.cards) && input.cards.length > 0
       ? input.cards.map(normalizeCard)
       : merged.cards.map(normalizeCard);
@@ -159,27 +157,91 @@
     return merged;
   }
 
-  function getSiteData() {
+  async function requestJson(url, options = {}) {
+    const response = await fetch(url, {
+      credentials: "same-origin",
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const error = new Error(data.error || "Request failed");
+      error.status = response.status;
+      error.payload = data;
+      throw error;
+    }
+
+    return data;
+  }
+
+  async function getSiteData() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        return normalizeSiteData(DEFAULT_SITE_DATA);
+      const response = await fetch("/api/content", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load content");
       }
-      return normalizeSiteData(JSON.parse(raw));
+
+      const data = await response.json();
+      return normalizeSiteData(data);
     } catch (error) {
       return normalizeSiteData(DEFAULT_SITE_DATA);
     }
   }
 
-  function saveSiteData(data) {
+  async function saveSiteData(data) {
     const normalized = normalizeSiteData(data);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
-    return normalized;
+    const saved = await requestJson("/api/content", {
+      method: "PUT",
+      body: JSON.stringify({
+        siteData: normalized,
+      }),
+    });
+    return normalizeSiteData(saved);
   }
 
-  function resetSiteData() {
-    localStorage.removeItem(STORAGE_KEY);
-    return getSiteData();
+  async function resetSiteData() {
+    const saved = await requestJson("/api/content", {
+      method: "DELETE",
+    });
+    return normalizeSiteData(saved);
+  }
+
+  async function loginAdmin(password) {
+    return requestJson("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    });
+  }
+
+  async function logoutAdmin() {
+    return requestJson("/api/auth/logout", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  }
+
+  async function getAdminSession() {
+    return requestJson("/api/auth/me", {
+      method: "GET",
+    });
+  }
+
+  async function uploadImage({ dataUrl, filename }) {
+    return requestJson("/api/upload", {
+      method: "POST",
+      body: JSON.stringify({
+        dataUrl,
+        filename,
+      }),
+    });
   }
 
   function createEmptyCard() {
@@ -199,9 +261,6 @@
   }
 
   window.FUXCSite = {
-    STORAGE_KEY,
-    ADMIN_SESSION_KEY,
-    ADMIN_PASSWORD,
     DEFAULT_SITE_DATA: clone(DEFAULT_SITE_DATA),
     getSiteData,
     saveSiteData,
@@ -209,5 +268,9 @@
     normalizeSiteData,
     normalizeCard,
     createEmptyCard,
+    loginAdmin,
+    logoutAdmin,
+    getAdminSession,
+    uploadImage,
   };
 })();

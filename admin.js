@@ -1,16 +1,14 @@
 const {
-  ADMIN_SESSION_KEY,
+  getAdminSession,
   getSiteData,
   saveSiteData,
   resetSiteData,
   normalizeSiteData,
   createEmptyCard,
   normalizeCard,
+  logoutAdmin,
+  uploadImage,
 } = window.FUXCSite;
-
-if (sessionStorage.getItem(ADMIN_SESSION_KEY) !== "1") {
-  window.location.replace("./login.html");
-}
 
 const heroFields = {
   kicker: document.getElementById("hero-kicker-input"),
@@ -48,7 +46,7 @@ const cardScreenshotInput = document.getElementById("card-screenshot-input");
 const cardScreenshotFileInput = document.getElementById("card-screenshot-file-input");
 const cardPreview = document.getElementById("card-preview");
 
-let siteData = normalizeSiteData(getSiteData());
+let siteData = normalizeSiteData({});
 
 function escapeHtml(value) {
   return String(value)
@@ -69,8 +67,8 @@ function switchPage(pageId) {
   });
 }
 
-function refreshData() {
-  siteData = normalizeSiteData(getSiteData());
+async function refreshData() {
+  siteData = normalizeSiteData(await getSiteData());
   fillHeroFields();
   fillCatalogFields();
   renderCardList();
@@ -172,12 +170,13 @@ function loadCardIntoForm(cardId) {
   openCardModal();
 }
 
-function saveCurrentData(nextData) {
-  siteData = saveSiteData(nextData);
+async function saveCurrentData(nextData) {
+  siteData = await saveSiteData(nextData);
+  return siteData;
 }
 
-function saveHero() {
-  saveCurrentData({
+async function saveHero() {
+  await saveCurrentData({
     ...siteData,
     hero: {
       ...siteData.hero,
@@ -192,8 +191,8 @@ function saveHero() {
   });
 }
 
-function saveCatalog() {
-  saveCurrentData({
+async function saveCatalog() {
+  await saveCurrentData({
     ...siteData,
     catalog: {
       ...siteData.catalog,
@@ -218,8 +217,14 @@ async function handleCardSubmit(event) {
 
   let screenshot = cardScreenshotInput.value.trim();
   const file = cardScreenshotFileInput.files[0];
+
   if (file) {
-    screenshot = await readImageFile(file);
+    const dataUrl = await readImageFile(file);
+    const upload = await uploadImage({
+      dataUrl,
+      filename: file.name || cardTitleInput.value.trim() || "card-image",
+    });
+    screenshot = upload.url;
   }
 
   const nextCard = normalizeCard({
@@ -244,7 +249,7 @@ async function handleCardSubmit(event) {
     ? siteData.cards.map((card) => (card.id === nextCard.id ? nextCard : card))
     : [...siteData.cards, nextCard];
 
-  saveCurrentData({
+  await saveCurrentData({
     ...siteData,
     cards: nextCards,
   });
@@ -260,12 +265,12 @@ navButtons.forEach((button) => {
   });
 });
 
-document.getElementById("save-hero").addEventListener("click", () => {
-  saveHero();
+document.getElementById("save-hero").addEventListener("click", async () => {
+  await saveHero();
 });
 
-document.getElementById("save-catalog").addEventListener("click", () => {
-  saveCatalog();
+document.getElementById("save-catalog").addEventListener("click", async () => {
+  await saveCatalog();
 });
 
 document.getElementById("create-card").addEventListener("click", () => {
@@ -277,22 +282,25 @@ document.getElementById("reset-card-form").addEventListener("click", () => {
   resetCardForm();
 });
 
-document.getElementById("logout-button").addEventListener("click", () => {
-  sessionStorage.removeItem(ADMIN_SESSION_KEY);
-  window.location.replace("./login.html");
+document.getElementById("logout-button").addEventListener("click", async () => {
+  try {
+    await logoutAdmin();
+  } finally {
+    window.location.replace("./login.html");
+  }
 });
 
-document.getElementById("reset-site").addEventListener("click", () => {
+document.getElementById("reset-site").addEventListener("click", async () => {
   const confirmed = window.confirm("确定要恢复默认内容吗？当前后台修改的内容会被覆盖。");
   if (!confirmed) {
     return;
   }
-  resetSiteData();
-  refreshData();
+  siteData = await resetSiteData();
+  await refreshData();
   resetCardForm();
 });
 
-adminCardList.addEventListener("click", (event) => {
+adminCardList.addEventListener("click", async (event) => {
   const editButton = event.target.closest("[data-edit-card]");
   if (editButton) {
     loadCardIntoForm(editButton.dataset.editCard);
@@ -315,7 +323,7 @@ adminCardList.addEventListener("click", (event) => {
     return;
   }
 
-  saveCurrentData({
+  await saveCurrentData({
     ...siteData,
     cards: siteData.cards.filter((item) => item.id !== cardId),
   });
@@ -345,16 +353,25 @@ cardScreenshotFileInput.addEventListener("change", async () => {
     return;
   }
   const dataUrl = await readImageFile(file);
-  cardScreenshotInput.value = dataUrl;
   updatePreview(dataUrl, cardTitleInput.value.trim());
 });
 
 cardForm.addEventListener("submit", (event) => {
   handleCardSubmit(event).catch(() => {
-    window.alert("卡片保存失败，请检查截图文件或输入内容后重试。");
+    window.alert("卡片保存失败，请检查截图文件、环境变量或 Vercel Blob 配置后重试。");
   });
 });
 
-refreshData();
-switchPage("copy");
-resetCardForm();
+async function init() {
+  const session = await getAdminSession().catch(() => ({ authenticated: false }));
+  if (!session.authenticated) {
+    window.location.replace("./login.html");
+    return;
+  }
+
+  await refreshData();
+  switchPage("copy");
+  resetCardForm();
+}
+
+init();
