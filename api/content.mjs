@@ -15,9 +15,20 @@ export async function PUT(request) {
     return unauthorized();
   }
 
-  const body = await request.json().catch(() => ({}));
-  const siteData = await writeSiteData(body.siteData || body);
-  return json(siteData);
+  try {
+    const body = await request.json().catch(() => ({}));
+    const siteData = await writeSiteData(body.siteData || body);
+    return json(siteData);
+  } catch (error) {
+    return json(
+      {
+        error: error instanceof Error ? error.message : "Failed to save content.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }
 
 export async function DELETE(request) {
@@ -25,6 +36,17 @@ export async function DELETE(request) {
     return unauthorized();
   }
 
-  const siteData = await resetSiteData();
-  return json(siteData);
+  try {
+    const siteData = await resetSiteData();
+    return json(siteData);
+  } catch (error) {
+    return json(
+      {
+        error: error instanceof Error ? error.message : "Failed to reset content.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }

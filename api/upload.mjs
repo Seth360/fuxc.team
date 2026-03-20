@@ -27,7 +27,7 @@ export async function POST(request) {
   } catch (error) {
     return json(
       {
-        error: "Upload failed.",
+        error: error instanceof Error ? error.message : "Upload failed.",
       },
       {
         status: 400,

@@ -1,4 +1,4 @@
-import { BlobNotFoundError, get, put } from "@vercel/blob";
+import { list, put } from "@vercel/blob";
 
 export const SITE_CONTENT_PATHNAME = "cms/site-content.json";
 
@@ -159,17 +159,27 @@ export function normalizeSiteData(data) {
 
 export async function readSiteData() {
   try {
-    const blob = await get(SITE_CONTENT_PATHNAME, {
-      access: "public",
+    const result = await list({
+      limit: 1,
+      prefix: SITE_CONTENT_PATHNAME,
     });
 
-    const text = await new Response(blob.stream).text();
-    return normalizeSiteData(JSON.parse(text));
-  } catch (error) {
-    if (error instanceof BlobNotFoundError) {
+    const blob = result.blobs.find((item) => item.pathname === SITE_CONTENT_PATHNAME);
+    if (!blob?.url) {
       return normalizeSiteData(DEFAULT_SITE_DATA);
     }
 
+    const response = await fetch(blob.url, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return normalizeSiteData(DEFAULT_SITE_DATA);
+    }
+
+    const text = await response.text();
+    return normalizeSiteData(JSON.parse(text));
+  } catch (error) {
     return normalizeSiteData(DEFAULT_SITE_DATA);
   }
 }
