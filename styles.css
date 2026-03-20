@@ -456,7 +456,7 @@ button {
 
 .admin-entry {
   position: fixed;
-  left: 24px;
+  left: 50%;
   bottom: 24px;
   z-index: 10;
   display: inline-flex;
@@ -466,10 +466,11 @@ button {
   padding: 0 16px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
-  background: rgba(6, 13, 25, 0.64);
-  color: rgba(255, 255, 255, 0.84);
+  background: rgba(6, 13, 25, 0.6);
+  color: rgba(255, 255, 255, 0.6);
   text-decoration: none;
   backdrop-filter: blur(12px);
+  transform: translateX(-50%);
   transition:
     transform 180ms ease,
     border-color 180ms ease,
@@ -478,7 +479,7 @@ button {
 
 .admin-entry:hover,
 .admin-entry:focus-visible {
-  transform: translateY(-2px);
+  transform: translateX(-50%) translateY(-2px);
   border-color: rgba(255, 154, 61, 0.42);
   background: rgba(255, 154, 61, 0.16);
 }
@@ -736,7 +737,7 @@ button {
   }
 
   .admin-entry {
-    left: 18px;
+    left: 50%;
     bottom: 18px;
   }
 
