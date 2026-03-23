@@ -6,7 +6,7 @@
     <title>一念即现 | FUXC.TEAM</title>
     <meta
       name="description"
-      content="一念即现，所想即得。一个展示 AI 零代码 Agent、浏览器插件与 Skill 的整屏滚动网站。"
+      content="一念即现，所想即得。FXC零代码应用聚合站。"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -53,8 +53,8 @@
 
           <div class="hero-actions">
             <a class="primary-action" href="#catalog" id="hero-primary-action">查看应用列表</a>
-            <button class="ghost-action" type="button" data-target="catalog" id="hero-secondary-action">
-              向下探索
+            <button class="ghost-action" type="button" id="hero-secondary-action">
+              梦想共创
             </button>
           </div>
 
@@ -74,10 +74,6 @@
           </div>
         </div>
 
-        <div class="scroll-cue" aria-hidden="true">
-          <span></span>
-          <p>Scroll for the build catalog</p>
-        </div>
       </section>
 
       <section class="panel catalog-panel" id="catalog" data-section="catalog">
@@ -96,32 +92,28 @@
             </div>
           </header>
 
-          <div class="filter-bar" role="tablist" aria-label="作品类别过滤">
-            <button class="filter-chip is-active" data-filter="all" role="tab" aria-selected="true">
-              全部
-            </button>
-            <button class="filter-chip" data-filter="agent" role="tab" aria-selected="false">
-              Agent
-            </button>
-            <button
-              class="filter-chip"
-              data-filter="extension"
-              role="tab"
-              aria-selected="false"
-            >
-              浏览器插件
-            </button>
-            <button class="filter-chip" data-filter="skill" role="tab" aria-selected="false">
-              Skill
-            </button>
+          <div class="catalog-toolbar">
+            <div class="filter-bar" id="filter-bar" role="tablist" aria-label="作品类别过滤"></div>
+            <div class="catalog-actions" id="catalog-actions">
+              <span class="catalog-user" id="catalog-user" hidden></span>
+              <button class="catalog-add-button" id="catalog-add-button" type="button" hidden>
+                ADD
+              </button>
+              <button class="catalog-logout-button" id="catalog-logout-button" type="button" hidden>
+                退出
+              </button>
+            </div>
           </div>
 
           <div class="card-grid" id="card-grid" aria-live="polite"></div>
+          <div class="catalog-footer">
+            <a class="catalog-view-all" id="catalog-view-all" href="./cards.html" hidden>查看全部</a>
+          </div>
         </div>
       </section>
     </main>
 
-    <a class="admin-entry" href="./login.html">Create Your Own App→</a>
+    <a class="admin-entry" id="admin-entry" href="./admin.html" hidden>后台入口</a>
 
     <div class="card-modal" id="card-modal" hidden>
       <button class="card-modal-backdrop" type="button" aria-label="关闭详情弹窗" data-close-modal></button>
@@ -155,6 +147,115 @@
           <div class="card-modal-meta" id="modal-meta"></div>
           <div class="card-modal-tags" id="modal-tags"></div>
         </div>
+      </section>
+    </div>
+
+    <div class="auth-modal" id="auth-modal" hidden>
+      <button class="auth-modal-backdrop" type="button" aria-label="关闭登录弹窗" data-close-auth></button>
+      <section class="auth-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+        <div class="auth-modal-head">
+          <div>
+            <p class="section-tag">Dream Build</p>
+            <h2 id="auth-modal-title">梦想共创</h2>
+            <p class="auth-modal-copy">输入用户名和密码即可登录。</p>
+          </div>
+          <button class="ghost-action auth-close" type="button" data-close-auth>取消</button>
+        </div>
+        <div class="auth-tabs" role="tablist" aria-label="登录或注册">
+          <button class="auth-tab is-active" type="button" data-auth-tab="login" aria-selected="true">
+            登录
+          </button>
+          <button class="auth-tab" type="button" data-auth-tab="register" aria-selected="false">
+            注册
+          </button>
+        </div>
+        <form class="auth-form" id="auth-form">
+          <label class="auth-field">
+            <span>用户名</span>
+            <input id="auth-username" type="text" autocomplete="username" placeholder="请输入用户名" required />
+          </label>
+          <label class="auth-field">
+            <span>密码</span>
+            <input id="auth-password" type="password" autocomplete="current-password" placeholder="请输入密码" required />
+          </label>
+          <label class="auth-field" id="auth-confirm-field" hidden>
+            <span>重复密码</span>
+            <input id="auth-password-confirm" type="password" autocomplete="new-password" placeholder="请再次输入密码" />
+          </label>
+          <label class="auth-field" id="auth-invite-field" hidden>
+            <span>邀请码</span>
+            <input id="auth-invite-code" type="text" placeholder="请输入邀请码" />
+          </label>
+          <p class="auth-note" id="auth-note">登录后即可上传自己的应用。</p>
+          <p class="auth-error" id="auth-error" hidden></p>
+          <div class="auth-actions">
+            <button class="primary-action auth-submit" id="auth-primary-button" type="submit">登录</button>
+            <button class="ghost-action auth-submit" type="button" data-close-auth>取消</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div class="creator-modal" id="creator-modal" hidden>
+      <button class="creator-modal-backdrop" type="button" aria-label="关闭上传弹窗" data-close-creator></button>
+      <section class="creator-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="creator-modal-title">
+        <div class="creator-modal-head">
+          <div>
+            <p class="section-tag">Add New Build</p>
+            <h2 id="creator-modal-title">上传我的应用</h2>
+            <p class="creator-modal-copy"></p>
+          </div>
+          <button class="ghost-action auth-close" type="button" data-close-creator>取消</button>
+        </div>
+
+        <form class="creator-form" id="creator-form">
+          <div class="creator-grid">
+            <label class="creator-field">
+              <span>类型</span>
+              <select id="creator-type"></select>
+            </label>
+            <label class="creator-field creator-field-full">
+              <span>应用名称</span>
+              <input id="creator-title" type="text" placeholder="请输入应用名称" required />
+            </label>
+            <label class="creator-field creator-field-full">
+              <span>文字介绍</span>
+              <textarea id="creator-description" rows="4" placeholder="介绍一下你的应用亮点"></textarea>
+            </label>
+            <label class="creator-field">
+              <span>Stack</span>
+              <input id="creator-stack" type="text" placeholder="AI + Automation" />
+            </label>
+            <label class="creator-field">
+              <span>Mode</span>
+              <input id="creator-mode" type="text" placeholder="In-browser action" />
+            </label>
+            <label class="creator-field creator-field-full">
+              <span>标签 tags</span>
+              <input id="creator-tags" type="text" placeholder="Prompt, Workflow, Demo" />
+            </label>
+            <label class="creator-field creator-field-full">
+              <span>GitHub 项目链接</span>
+              <input id="creator-github" type="url" placeholder="https://github.com/..." />
+            </label>
+            <label class="creator-field creator-field-full">
+              <span>截图链接</span>
+              <input id="creator-screenshot" type="url" placeholder="https://... 或留空使用上传文件" />
+            </label>
+            <label class="creator-field creator-field-full">
+              <span>上传截图</span>
+              <input id="creator-screenshot-file" type="file" accept="image/*" />
+            </label>
+          </div>
+
+          <div class="creator-preview" id="creator-preview">暂无截图预览</div>
+          <p class="auth-error" id="creator-error" hidden></p>
+
+          <div class="auth-actions">
+            <button class="primary-action auth-submit" type="submit">提交卡片</button>
+            <button class="ghost-action auth-submit" type="button" data-close-creator>取消</button>
+          </div>
+        </form>
       </section>
     </div>
 

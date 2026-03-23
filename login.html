@@ -16,16 +16,39 @@
     <main class="admin-app">
       <section class="admin-login">
         <div class="admin-login-card">
-          <p class="admin-eyebrow">FUXC.TEAM CMS</p>
-          <h1>后台登录</h1>
-          <p>输入后台密码后进入内容管理页。</p>
-          <form id="login-form" >
+          <p class="admin-eyebrow">FUXC.TEAM ACCESS</p>
+          <h1>登录 / 注册</h1>
+          <p>管理员和普通成员都从这里进入。管理员登录后跳转后台，普通成员登录后回到前台。</p>
+          <div class="admin-auth-tabs" role="tablist" aria-label="登录或注册">
+            <button class="admin-auth-tab is-active" id="login-tab-button" type="button" data-auth-tab="login" aria-selected="true">
+              登录
+            </button>
+            <button class="admin-auth-tab" id="register-tab-button" type="button" data-auth-tab="register" aria-selected="false">
+              注册
+            </button>
+          </div>
+          <form id="login-form">
             <label class="admin-field">
-              <span>后台密码</span>
-              <input id="login-password" type="password" placeholder="请输入密码" required />
+              <span>用户名</span>
+              <input id="login-username" type="text" placeholder="请输入用户名" autocomplete="username" required />
             </label>
-            <button class="admin-button admin-button-primary" type="submit">登录并进入后台</button>
-            <p class="admin-error" id="login-error" hidden>密码不正确，请重新输入。</p>
+            <label class="admin-field">
+              <span>密码</span>
+              <input id="login-password" type="password" placeholder="请输入密码" autocomplete="current-password" required />
+            </label>
+            <label class="admin-field" id="login-confirm-field" hidden>
+              <span>重复密码</span>
+              <input id="login-password-confirm" type="password" placeholder="请再次输入密码" autocomplete="new-password" />
+            </label>
+            <label class="admin-field" id="login-invite-field" hidden>
+              <span>邀请码</span>
+              <input id="login-invite-code" type="text" placeholder="请输入邀请码" />
+            </label>
+            <div class="admin-login-actions">
+              <button class="admin-button admin-button-primary" id="login-primary-button" type="submit">登录</button>
+              <a class="admin-button admin-button-ghost" href="./index.html">取消</a>
+            </div>
+            <p class="admin-error" id="login-error" hidden></p>
           </form>
         </div>
       </section>

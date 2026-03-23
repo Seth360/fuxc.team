@@ -8,7 +8,7 @@
       description:
         "把脑海里的想法，变成真正能被点击、使用、传播的产品。这里收纳了我用 AI 零代码打造的 Agent、浏览器插件与 Skill。",
       primaryActionText: "查看作品列表",
-      secondaryActionText: "向下探索",
+      secondaryActionText: "梦想共创",
     },
     catalog: {
       sectionTag: "Build Library",
@@ -16,6 +16,20 @@
       description:
         "第二屏聚合展示我做过的 Agent、浏览器插件与 Skill。下面先放了一组可直接替换的示例卡片，你后续只需要改后台里的数据即可。",
     },
+    appTypes: [
+      {
+        id: "agent",
+        label: "Agent",
+      },
+      {
+        id: "extension",
+        label: "浏览器插件",
+      },
+      {
+        id: "skill",
+        label: "Skill",
+      },
+    ],
     cards: [
       {
         id: "card-agent-lead",
@@ -112,15 +126,45 @@
     if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
       return crypto.randomUUID();
     }
+
     return `card-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
+  function createTypeId(label = "") {
+    const base = String(label || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_]+/g, "-")
+      .replace(/[^a-z0-9-\u4e00-\u9fa5]+/g, "")
+      .replace(/^-+|-+$/g, "");
+
+    return base || `type-${Date.now().toString(36)}`;
+  }
+
+  function normalizeAppType(type, index) {
+    const label = String(type?.label || "").trim() || `类型 ${index + 1}`;
+    return {
+      id: String(type?.id || "").trim() || createTypeId(label),
+      label,
+    };
+  }
+
+  function getCardLabel(appTypes, typeId) {
+    const matched = Array.isArray(appTypes)
+      ? appTypes.find((item) => item.id === typeId)
+      : null;
+
+    return matched?.label || String(typeId || "").trim() || "未分类";
+  }
+
   function normalizeCard(card, index) {
+    const type = String(card.type || "").trim() || DEFAULT_SITE_DATA.appTypes[0].id;
+
     return {
       id: card.id || createId(),
-      type: card.type || "agent",
-      label: card.label || "Agent",
-      badge: card.badge || "Sample",
+      type,
+      label: card.label || "",
+      badge: typeof card.badge === "string" ? card.badge : "Sample",
       title: card.title || `未命名项目 ${index + 1}`,
       description: card.description || "",
       stack: card.stack || "",
@@ -133,6 +177,8 @@
             .filter(Boolean),
       githubUrl: card.githubUrl || "",
       screenshot: card.screenshot || "",
+      ownerUsername: card.ownerUsername || "",
+      ownerRole: card.ownerRole || "",
       createdAt: card.createdAt || "",
       updatedAt: card.updatedAt || "",
     };
@@ -145,6 +191,7 @@
     merged.hero = {
       ...merged.hero,
       ...(input.hero || {}),
+      secondaryActionText: "梦想共创",
     };
 
     merged.catalog = {
@@ -152,9 +199,25 @@
       ...(input.catalog || {}),
     };
 
+    merged.appTypes = Array.isArray(input.appTypes) && input.appTypes.length > 0
+      ? input.appTypes.map(normalizeAppType)
+      : merged.appTypes.map(normalizeAppType);
+
     merged.cards = Array.isArray(input.cards) && input.cards.length > 0
-      ? input.cards.map(normalizeCard)
-      : merged.cards.map(normalizeCard);
+      ? input.cards.map((card, index) => {
+          const normalizedCard = normalizeCard(card, index);
+          return {
+            ...normalizedCard,
+            label: getCardLabel(merged.appTypes, normalizedCard.type),
+          };
+        })
+      : merged.cards.map((card, index) => {
+          const normalizedCard = normalizeCard(card, index);
+          return {
+            ...normalizedCard,
+            label: getCardLabel(merged.appTypes, normalizedCard.type),
+          };
+        });
 
     return merged;
   }
@@ -216,21 +279,35 @@
     return normalizeSiteData(saved);
   }
 
-  async function loginAdmin(password) {
+  async function login({ username, password }) {
     return requestJson("/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({
+        username,
+        password,
+      }),
     });
   }
 
-  async function logoutAdmin() {
+  async function register({ username, password, inviteCode }) {
+    return requestJson("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        username,
+        password,
+        inviteCode,
+      }),
+    });
+  }
+
+  async function logout() {
     return requestJson("/api/auth/logout", {
       method: "POST",
       body: JSON.stringify({}),
     });
   }
 
-  async function getAdminSession() {
+  async function getSession() {
     return requestJson("/api/auth/me", {
       method: "GET",
     });
@@ -246,11 +323,33 @@
     });
   }
 
+  async function createCard(card) {
+    return requestJson("/api/cards", {
+      method: "POST",
+      body: JSON.stringify(card),
+    });
+  }
+
+  async function getMembers() {
+    return requestJson("/api/members", {
+      method: "GET",
+    });
+  }
+
+  async function deleteMember(memberId) {
+    return requestJson("/api/members", {
+      method: "DELETE",
+      body: JSON.stringify({
+        memberId,
+      }),
+    });
+  }
+
   function createEmptyCard() {
     return normalizeCard({
       id: "",
-      type: "agent",
-      label: "Agent",
+      type: DEFAULT_SITE_DATA.appTypes[0].id,
+      label: DEFAULT_SITE_DATA.appTypes[0].label,
       badge: "New",
       title: "",
       description: "",
@@ -259,6 +358,8 @@
       tags: [],
       githubUrl: "",
       screenshot: "",
+      ownerUsername: "",
+      ownerRole: "",
     });
   }
 
@@ -269,10 +370,15 @@
     resetSiteData,
     normalizeSiteData,
     normalizeCard,
+    normalizeAppType,
     createEmptyCard,
-    loginAdmin,
-    logoutAdmin,
-    getAdminSession,
+    login,
+    register,
+    logout,
+    getSession,
     uploadImage,
+    createCard,
+    getMembers,
+    deleteMember,
   };
 })();

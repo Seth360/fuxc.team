@@ -1,12 +1,15 @@
 const {
-  getAdminSession,
+  getSession,
   getSiteData,
+  getMembers,
+  deleteMember,
   saveSiteData,
   resetSiteData,
   normalizeSiteData,
+  normalizeAppType,
   createEmptyCard,
   normalizeCard,
-  logoutAdmin,
+  logout,
   uploadImage,
 } = window.FUXCSite;
 
@@ -29,6 +32,8 @@ const catalogFields = {
 const navButtons = Array.from(document.querySelectorAll("[data-page]"));
 const pagePanels = Array.from(document.querySelectorAll("[data-page-panel]"));
 const adminCardList = document.getElementById("admin-card-list");
+const adminTypeList = document.getElementById("admin-type-list");
+const adminMemberList = document.getElementById("admin-member-list");
 const cardModal = document.getElementById("card-modal");
 const cardModalTitle = document.getElementById("card-modal-title");
 const cardForm = document.getElementById("card-form");
@@ -45,10 +50,18 @@ const cardGithubInput = document.getElementById("card-github-input");
 const cardScreenshotInput = document.getElementById("card-screenshot-input");
 const cardScreenshotFileInput = document.getElementById("card-screenshot-file-input");
 const cardPreview = document.getElementById("card-preview");
+const deleteCardInModalButton = document.getElementById("delete-card-in-modal");
+const typeModal = document.getElementById("type-modal");
+const typeModalTitle = document.getElementById("type-modal-title");
+const typeForm = document.getElementById("type-form");
+const typeIdInput = document.getElementById("type-id-input");
+const typeLabelInput = document.getElementById("type-label-input");
+const deleteTypeInModalButton = document.getElementById("delete-type-in-modal");
 const adminToast = document.getElementById("admin-toast");
 const adminToastMessage = document.getElementById("admin-toast-message");
 
 let siteData = normalizeSiteData({});
+let members = [];
 let draggedCardId = "";
 let toastTimer = null;
 
@@ -73,6 +86,25 @@ function getErrorMessage(error, fallback) {
   return fallback;
 }
 
+function formatDateTime(value) {
+  if (!value) {
+    return "未记录";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 function showToast(message) {
   adminToastMessage.textContent = message;
   adminToast.hidden = false;
@@ -86,6 +118,43 @@ function showToast(message) {
   }, 2400);
 }
 
+function getAppTypes() {
+  return Array.isArray(siteData.appTypes) && siteData.appTypes.length > 0
+    ? siteData.appTypes
+    : [{ id: "agent", label: "Agent" }];
+}
+
+function getAppTypeLabel(typeId) {
+  const matched = getAppTypes().find((type) => type.id === typeId);
+  return matched?.label || String(typeId || "").trim() || "未分类";
+}
+
+function renderTypeOptions(selectElement, selectedType = "") {
+  const appTypes = getAppTypes();
+  const options = getAppTypes()
+    .map(
+      (type) => `
+        <option value="${escapeHtml(type.id)}" ${type.id === selectedType ? "selected" : ""}>
+          ${escapeHtml(type.label)}
+        </option>
+      `
+    )
+    .join("");
+
+  selectElement.innerHTML = options;
+  const hasSelected = appTypes.some((type) => type.id === selectedType);
+  if (hasSelected) {
+    selectElement.value = selectedType;
+  } else if (appTypes[0]) {
+    selectElement.value = appTypes[0].id;
+  }
+}
+
+function syncCardLabelInput() {
+  cardLabelInput.value = getAppTypeLabel(cardTypeInput.value);
+  cardLabelInput.disabled = true;
+}
+
 function switchPage(pageId) {
   navButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.page === pageId);
@@ -97,16 +166,29 @@ function switchPage(pageId) {
 }
 
 async function refreshData() {
-  siteData = normalizeSiteData(await getSiteData());
+  const [nextSiteData, memberResponse] = await Promise.all([
+    getSiteData(),
+    getMembers().catch(() => ({ members: [] })),
+  ]);
+
+  siteData = normalizeSiteData(nextSiteData);
+  members = Array.isArray(memberResponse?.members) ? memberResponse.members : [];
+
   fillHeroFields();
   fillCatalogFields();
+  renderTypeOptions(cardTypeInput, cardTypeInput.value);
   renderCardList();
+  renderTypeList();
+  renderMemberList();
 }
 
 function fillHeroFields() {
   Object.entries(heroFields).forEach(([key, input]) => {
     input.value = siteData.hero[key] || "";
   });
+
+  heroFields.secondaryActionText.value = "梦想共创";
+  heroFields.secondaryActionText.disabled = true;
 }
 
 function fillCatalogFields() {
@@ -127,7 +209,7 @@ function renderCardList() {
           <div class="admin-card-meta">
             ${card.stack ? `<span>${escapeHtml(card.stack)}</span>` : ""}
             ${card.mode ? `<span>${escapeHtml(card.mode)}</span>` : ""}
-            ${card.githubUrl ? "<span>GitHub</span>" : ""}
+            ${card.ownerUsername ? `<span>成员：${escapeHtml(card.ownerUsername)}</span>` : "<span>站点内置</span>"}
           </div>
           <div class="admin-card-actions">
             <button class="admin-button admin-button-primary" type="button" data-edit-card="${card.id}">
@@ -143,19 +225,99 @@ function renderCardList() {
     .join("");
 }
 
+function renderTypeList() {
+  adminTypeList.innerHTML = getAppTypes()
+    .map((type) => {
+      const typeCardCount = siteData.cards.filter((card) => card.type === type.id).length;
+      return `
+        <article class="admin-type-item">
+          <div>
+            <p class="admin-eyebrow">Type ID</p>
+            <h3>${escapeHtml(type.label)}</h3>
+            <p class="admin-type-meta">${escapeHtml(type.id)} · ${String(typeCardCount)} 张卡片</p>
+          </div>
+          <div class="admin-type-actions">
+            <button class="admin-button admin-button-primary" type="button" data-edit-type="${type.id}">
+              编辑
+            </button>
+            <button class="admin-button admin-button-ghost" type="button" data-delete-type="${type.id}">
+              删除
+            </button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderMemberList() {
+  if (!members.length) {
+    adminMemberList.innerHTML = '<p class="admin-empty-state">还没有普通成员注册。</p>';
+    return;
+  }
+
+  adminMemberList.innerHTML = members
+    .map(
+      (member) => {
+        const memberCards = siteData.cards.filter((card) => card.ownerUsername === member.username);
+
+        return `
+        <article class="admin-member-item">
+          <div class="admin-member-head">
+            <div>
+              <p class="admin-eyebrow">${escapeHtml(member.role)}</p>
+              <h3>${escapeHtml(member.username)}</h3>
+            </div>
+            <div class="admin-member-head-actions">
+              <span class="admin-member-badge">${String(member.cardCount || 0).padStart(2, "0")} 张卡片</span>
+              <button class="admin-button admin-button-ghost" type="button" data-delete-member="${member.id}">
+                删除成员
+              </button>
+            </div>
+          </div>
+          <div class="admin-member-meta">
+            <span>注册时间：${escapeHtml(formatDateTime(member.createdAt))}</span>
+            <span>最近登录：${escapeHtml(formatDateTime(member.lastLoginAt))}</span>
+          </div>
+          <div class="admin-member-card-previews">
+            ${
+              memberCards.length
+                ? memberCards
+                    .map(
+                      (card) => `
+                        <button class="admin-member-card-preview" type="button" data-edit-card="${card.id}">
+                          <div class="admin-member-card-copy">
+                            <strong>${escapeHtml(card.title)}</strong>
+                            <p>${escapeHtml(card.description || "暂无简介")}</p>
+                          </div>
+                        </button>
+                      `
+                    )
+                    .join("")
+                : '<p class="admin-empty-state">该成员还没有创建卡片。</p>'
+            }
+          </div>
+        </article>
+      `;
+      }
+    )
+    .join("");
+}
+
 function updatePreview(src, title) {
   if (!src) {
     cardPreview.textContent = "暂无截图预览";
     return;
   }
+
   cardPreview.innerHTML = `<img src="${src}" alt="${escapeHtml(title || "卡片")} 截图预览" />`;
 }
 
 function resetCardForm() {
   const empty = createEmptyCard();
   cardIdInput.value = "";
-  cardTypeInput.value = empty.type;
-  cardLabelInput.value = empty.label;
+  renderTypeOptions(cardTypeInput, empty.type);
+  syncCardLabelInput();
   cardBadgeInput.value = empty.badge;
   cardTitleInput.value = "";
   cardDescriptionInput.value = "";
@@ -167,6 +329,14 @@ function resetCardForm() {
   cardScreenshotFileInput.value = "";
   updatePreview("", "");
   cardModalTitle.textContent = "新建卡片";
+  deleteCardInModalButton.hidden = true;
+}
+
+function resetTypeForm() {
+  typeIdInput.value = "";
+  typeLabelInput.value = "";
+  typeModalTitle.textContent = "新建类型";
+  deleteTypeInModalButton.hidden = true;
 }
 
 function openCardModal() {
@@ -177,6 +347,14 @@ function closeCardModal() {
   cardModal.hidden = true;
 }
 
+function openTypeModal() {
+  typeModal.hidden = false;
+}
+
+function closeTypeModal() {
+  typeModal.hidden = true;
+}
+
 function loadCardIntoForm(cardId) {
   const card = siteData.cards.find((item) => item.id === cardId);
   if (!card) {
@@ -184,8 +362,8 @@ function loadCardIntoForm(cardId) {
   }
 
   cardIdInput.value = card.id;
-  cardTypeInput.value = card.type;
-  cardLabelInput.value = card.label;
+  renderTypeOptions(cardTypeInput, card.type);
+  syncCardLabelInput();
   cardBadgeInput.value = card.badge;
   cardTitleInput.value = card.title;
   cardDescriptionInput.value = card.description;
@@ -197,7 +375,21 @@ function loadCardIntoForm(cardId) {
   cardScreenshotFileInput.value = "";
   updatePreview(card.screenshot, card.title);
   cardModalTitle.textContent = "编辑卡片";
+  deleteCardInModalButton.hidden = false;
   openCardModal();
+}
+
+function loadTypeIntoForm(typeId) {
+  const type = getAppTypes().find((item) => item.id === typeId);
+  if (!type) {
+    return;
+  }
+
+  typeIdInput.value = type.id;
+  typeLabelInput.value = type.label;
+  typeModalTitle.textContent = "编辑类型";
+  deleteTypeInModalButton.hidden = false;
+  openTypeModal();
 }
 
 async function saveCurrentData(nextData) {
@@ -216,7 +408,7 @@ async function saveHero() {
       subtitle: heroFields.subtitle.value.trim(),
       description: heroFields.description.value.trim(),
       primaryActionText: heroFields.primaryActionText.value.trim(),
-      secondaryActionText: heroFields.secondaryActionText.value.trim(),
+      secondaryActionText: "梦想共创",
     },
   });
   showToast("首屏内容已保存");
@@ -265,7 +457,7 @@ async function handleCardSubmit(event) {
   const nextCard = normalizeCard({
     id: cardIdInput.value.trim(),
     type: cardTypeInput.value,
-    label: cardLabelInput.value.trim(),
+    label: getAppTypeLabel(cardTypeInput.value),
     badge: cardBadgeInput.value.trim(),
     title: cardTitleInput.value.trim(),
     description: cardDescriptionInput.value.trim(),
@@ -277,6 +469,8 @@ async function handleCardSubmit(event) {
       .filter(Boolean),
     githubUrl: cardGithubInput.value.trim(),
     screenshot,
+    ownerUsername: currentCard?.ownerUsername || "",
+    ownerRole: currentCard?.ownerRole || "",
     createdAt: currentCard?.createdAt || timestamp,
     updatedAt: timestamp,
   });
@@ -304,6 +498,112 @@ async function saveCardOrder(nextCards) {
   });
   renderCardList();
   showToast("应用排序已保存");
+}
+
+async function saveTypeForm() {
+  const label = typeLabelInput.value.trim();
+  if (!label) {
+    window.alert("请输入类型名称。");
+    return;
+  }
+
+  const editingId = typeIdInput.value.trim();
+  const existingTypes = getAppTypes();
+
+  if (editingId) {
+    const nextTypes = existingTypes.map((type) =>
+      type.id === editingId
+        ? {
+            ...type,
+            label,
+          }
+        : type
+    );
+
+    await saveCurrentData({
+      ...siteData,
+      appTypes: nextTypes,
+      cards: siteData.cards.map((card) =>
+        card.type === editingId
+          ? {
+              ...card,
+              label,
+            }
+          : card
+      ),
+    });
+    await refreshData();
+    closeTypeModal();
+    resetTypeForm();
+    showToast("应用类型已更新");
+    return;
+  }
+
+  const normalizedType = normalizeAppType({ label });
+  let nextId = normalizedType.id;
+  let suffix = 2;
+  while (existingTypes.some((type) => type.id === nextId)) {
+    nextId = `${normalizedType.id}-${suffix}`;
+    suffix += 1;
+  }
+
+  await saveCurrentData({
+    ...siteData,
+    appTypes: [
+      ...existingTypes,
+      {
+        ...normalizedType,
+        id: nextId,
+      },
+    ],
+  });
+  await refreshData();
+  closeTypeModal();
+  resetTypeForm();
+  showToast("应用类型已创建");
+}
+
+async function handleDeleteType(typeId) {
+  const currentTypes = getAppTypes();
+  if (currentTypes.length <= 1) {
+    window.alert("至少需要保留一个应用类型。");
+    return;
+  }
+
+  const currentType = currentTypes.find((type) => type.id === typeId);
+  if (!currentType) {
+    return;
+  }
+
+  const replacementType = currentTypes.find((type) => type.id !== typeId);
+  const affectedCards = siteData.cards.filter((card) => card.type === typeId);
+  const confirmed = window.confirm(
+    affectedCards.length
+      ? `删除类型“${currentType.label}”后，这 ${affectedCards.length} 张卡片将转移到“${replacementType.label}”。确定继续吗？`
+      : `确定删除类型“${currentType.label}”吗？`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  await saveCurrentData({
+    ...siteData,
+    appTypes: currentTypes.filter((type) => type.id !== typeId),
+    cards: siteData.cards.map((card) =>
+      card.type === typeId
+        ? {
+            ...card,
+            type: replacementType.id,
+            label: replacementType.label,
+          }
+        : card
+    ),
+  });
+  await refreshData();
+  closeTypeModal();
+  resetTypeForm();
+  showToast("应用类型已删除");
 }
 
 function clearDragStates() {
@@ -355,13 +655,45 @@ document.getElementById("create-card").addEventListener("click", () => {
   openCardModal();
 });
 
+document.getElementById("create-type").addEventListener("click", () => {
+  resetTypeForm();
+  openTypeModal();
+});
+
 document.getElementById("reset-card-form").addEventListener("click", () => {
   resetCardForm();
 });
 
+document.getElementById("reset-type-form").addEventListener("click", () => {
+  resetTypeForm();
+});
+
+deleteCardInModalButton.addEventListener("click", async () => {
+  const cardId = cardIdInput.value.trim();
+  const card = siteData.cards.find((item) => item.id === cardId);
+  if (!card) {
+    return;
+  }
+
+  const confirmed = window.confirm(`确定删除卡片“${card.title}”吗？`);
+  if (!confirmed) {
+    return;
+  }
+
+  await saveCurrentData({
+    ...siteData,
+    cards: siteData.cards.filter((item) => item.id !== cardId),
+  });
+  renderCardList();
+  renderMemberList();
+  closeCardModal();
+  resetCardForm();
+  showToast("应用卡片已删除");
+});
+
 document.getElementById("logout-button").addEventListener("click", async () => {
   try {
-    await logoutAdmin();
+    await logout();
   } finally {
     window.location.replace("./login.html");
   }
@@ -372,6 +704,7 @@ document.getElementById("reset-site").addEventListener("click", async () => {
   if (!confirmed) {
     return;
   }
+
   siteData = await resetSiteData();
   await refreshData();
   resetCardForm();
@@ -407,6 +740,51 @@ adminCardList.addEventListener("click", async (event) => {
   });
   renderCardList();
   showToast("应用卡片已删除");
+});
+
+adminTypeList.addEventListener("click", async (event) => {
+  const editButton = event.target.closest("[data-edit-type]");
+  if (editButton) {
+    loadTypeIntoForm(editButton.dataset.editType);
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-delete-type]");
+  if (deleteButton) {
+    await handleDeleteType(deleteButton.dataset.deleteType);
+  }
+});
+
+adminMemberList.addEventListener("click", async (event) => {
+  const editButton = event.target.closest("[data-edit-card]");
+  if (editButton) {
+    loadCardIntoForm(editButton.dataset.editCard);
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-delete-member]");
+  if (!deleteButton) {
+    return;
+  }
+
+  const memberId = deleteButton.dataset.deleteMember;
+  const member = members.find((item) => item.id === memberId);
+  if (!member) {
+    return;
+  }
+
+  const confirmed = window.confirm(`确定删除成员“${member.username}”及其创建的全部卡片吗？`);
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const result = await deleteMember(memberId);
+    await refreshData();
+    showToast(`已删除成员 ${member.username}，并移除 ${result.removedCardCount || 0} 张卡片`);
+  } catch (error) {
+    window.alert(`删除成员失败：${getErrorMessage(error, "请稍后再试。")}`);
+  }
 });
 
 adminCardList.addEventListener("dragstart", (event) => {
@@ -470,14 +848,27 @@ cardModal.addEventListener("click", (event) => {
   }
 });
 
+typeModal.addEventListener("click", (event) => {
+  if (event.target.closest("[data-close-type-modal]")) {
+    closeTypeModal();
+  }
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !cardModal.hidden) {
     closeCardModal();
+  }
+  if (event.key === "Escape" && !typeModal.hidden) {
+    closeTypeModal();
   }
 });
 
 cardScreenshotInput.addEventListener("input", () => {
   updatePreview(cardScreenshotInput.value.trim(), cardTitleInput.value.trim());
+});
+
+cardTypeInput.addEventListener("change", () => {
+  syncCardLabelInput();
 });
 
 cardScreenshotFileInput.addEventListener("change", async () => {
@@ -486,6 +877,7 @@ cardScreenshotFileInput.addEventListener("change", async () => {
     updatePreview(cardScreenshotInput.value.trim(), cardTitleInput.value.trim());
     return;
   }
+
   const dataUrl = await readImageFile(file);
   updatePreview(dataUrl, cardTitleInput.value.trim());
 });
@@ -500,9 +892,25 @@ cardForm.addEventListener("submit", (event) => {
   });
 });
 
+typeForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveTypeForm().catch((error) => {
+    window.alert(`类型保存失败：${getErrorMessage(error, "请稍后再试。")}`);
+  });
+});
+
+deleteTypeInModalButton.addEventListener("click", async () => {
+  const typeId = typeIdInput.value.trim();
+  if (!typeId) {
+    return;
+  }
+
+  await handleDeleteType(typeId);
+});
+
 async function init() {
-  const session = await getAdminSession().catch(() => ({ authenticated: false }));
-  if (!session.authenticated) {
+  const session = await getSession().catch(() => ({ authenticated: false, isAdmin: false }));
+  if (!session.authenticated || !session.isAdmin) {
     window.location.replace("./login.html");
     return;
   }

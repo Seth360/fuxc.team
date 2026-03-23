@@ -1,8 +1,8 @@
-import { isAuthenticated, json, unauthorized } from "./_lib/auth.mjs";
+import { getSession, json, unauthorized } from "./_lib/auth.mjs";
 import { uploadCardImageFromDataUrl } from "./_lib/site-data.mjs";
 
 export async function POST(request) {
-  if (!isAuthenticated(request)) {
+  if (!getSession(request).authenticated) {
     return unauthorized();
   }
 

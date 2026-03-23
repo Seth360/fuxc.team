@@ -14,6 +14,11 @@
   --container: min(1200px, calc(100vw - 48px));
 }
 
+html {
+  scrollbar-color: rgba(255, 154, 61, 0.38) rgba(6, 15, 28, 0.92);
+  scrollbar-width: thin;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -27,6 +32,25 @@ body {
     var(--bg-strong);
   color: var(--text);
   font-family: "DM Sans", sans-serif;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(6, 15, 28, 0.92);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(255, 154, 61, 0.5), rgba(77, 230, 220, 0.3));
+  border-radius: 999px;
+  border: 2px solid rgba(6, 15, 28, 0.92);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(255, 154, 61, 0.72), rgba(77, 230, 220, 0.42));
 }
 
 button,
@@ -159,6 +183,33 @@ button {
   flex-wrap: wrap;
 }
 
+.admin-login-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-auth-tabs {
+  display: inline-flex;
+  gap: 10px;
+  margin: 12px 0 18px;
+}
+
+.admin-auth-tab {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+}
+
+.admin-auth-tab.is-active {
+  background: rgba(255, 154, 61, 0.16);
+  border-color: rgba(255, 154, 61, 0.34);
+  color: var(--text);
+}
+
 .admin-panel {
   padding: 24px;
   border-radius: 28px;
@@ -181,6 +232,10 @@ button {
 .admin-field {
   display: grid;
   gap: 8px;
+}
+
+.admin-field[hidden] {
+  display: none !important;
 }
 
 .admin-field span {
@@ -326,6 +381,131 @@ button {
   border-radius: 22px;
 }
 
+.admin-type-list {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-type-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-type-item h3 {
+  margin: 8px 0 0;
+  font-size: 1.1rem;
+}
+
+.admin-type-meta {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.admin-type-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-member-list {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-member-item {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-member-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-member-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-member-head h3 {
+  margin: 8px 0 0;
+  font-size: 1.18rem;
+}
+
+.admin-member-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 154, 61, 0.14);
+  border: 1px solid rgba(255, 154, 61, 0.26);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.admin-member-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.admin-member-card-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.admin-member-card-preview {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  text-align: left;
+}
+
+.admin-member-card-copy {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+}
+
+.admin-member-card-copy strong {
+  color: #ffffff;
+  font-size: 0.96rem;
+}
+
+.admin-member-card-copy p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.admin-empty-state {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
 .admin-modal {
   position: fixed;
   inset: 0;
@@ -416,7 +596,9 @@ button {
 @media (max-width: 960px) {
   .admin-header,
   .admin-panel-head,
-  .admin-modal-head {
+  .admin-modal-head,
+  .admin-member-head,
+  .admin-type-item {
     grid-template-columns: 1fr;
     display: grid;
     align-items: start;
@@ -460,6 +642,16 @@ button {
   .admin-login-card,
   .admin-panel {
     padding: 20px;
+  }
+
+  .admin-login-actions {
+    flex-direction: column;
+  }
+
+  .admin-auth-tabs,
+  .admin-member-head-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .admin-modal {

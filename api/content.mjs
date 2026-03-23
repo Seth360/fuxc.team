@@ -1,4 +1,4 @@
-import { isAuthenticated, json, unauthorized } from "./_lib/auth.mjs";
+import { isAdmin, json, unauthorized } from "./_lib/auth.mjs";
 import {
   readSiteData,
   resetSiteData,
@@ -11,7 +11,7 @@ export async function GET() {
 }
 
 export async function PUT(request) {
-  if (!isAuthenticated(request)) {
+  if (!isAdmin(request)) {
     return unauthorized();
   }
 
@@ -32,7 +32,7 @@ export async function PUT(request) {
 }
 
 export async function DELETE(request) {
-  if (!isAuthenticated(request)) {
+  if (!isAdmin(request)) {
     return unauthorized();
   }
 

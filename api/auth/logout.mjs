@@ -4,6 +4,7 @@ export async function POST() {
   return json(
     {
       ok: true,
+      authenticated: false,
     },
     {
       headers: {

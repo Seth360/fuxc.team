@@ -1,6 +1,11 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import { list, put } from "@vercel/blob";
 
 export const SITE_CONTENT_PATHNAME = "cms/site-content.json";
+const LOCAL_DATA_DIR = path.join(process.cwd(), ".local-data");
+const LOCAL_UPLOAD_DIR = path.join(process.cwd(), "uploads", "cards");
+const LOCAL_SITE_CONTENT_FILE = path.join(LOCAL_DATA_DIR, "site-content.json");
 
 export const DEFAULT_SITE_DATA = {
   hero: {
@@ -11,7 +16,7 @@ export const DEFAULT_SITE_DATA = {
     description:
       "把脑海里的想法，变成真正能被点击、使用、传播的产品。这里收纳了我用 AI 零代码打造的 Agent、浏览器插件与 Skill。",
     primaryActionText: "查看作品列表",
-    secondaryActionText: "向下探索",
+    secondaryActionText: "梦想共创",
   },
   catalog: {
     sectionTag: "Build Library",
@@ -19,6 +24,20 @@ export const DEFAULT_SITE_DATA = {
     description:
       "第二屏聚合展示我做过的 Agent、浏览器插件与 Skill。下面先放了一组可直接替换的示例卡片，你后续只需要改后台里的数据即可。",
   },
+  appTypes: [
+    {
+      id: "agent",
+      label: "Agent",
+    },
+    {
+      id: "extension",
+      label: "浏览器插件",
+    },
+    {
+      id: "skill",
+      label: "Skill",
+    },
+  ],
   cards: [
     {
       id: "card-agent-lead",
@@ -111,8 +130,43 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function hasBlobToken() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
 function createId() {
   return `card-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function createTypeId(label = "") {
+  const base = String(label || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-\u4e00-\u9fa5]+/g, "")
+    .replace(/^-+|-+$/g, "");
+
+  return base || `type-${Date.now().toString(36)}`;
+}
+
+async function ensureDirectory(dirPath) {
+  await fs.mkdir(dirPath, {
+    recursive: true,
+  });
+}
+
+async function readLocalJson(filePath, fallback) {
+  try {
+    const text = await fs.readFile(filePath, "utf8");
+    return JSON.parse(text);
+  } catch (error) {
+    return fallback;
+  }
+}
+
+async function writeLocalJson(filePath, data) {
+  await ensureDirectory(path.dirname(filePath));
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
 }
 
 export function normalizeCard(card, index = 0) {
@@ -120,7 +174,7 @@ export function normalizeCard(card, index = 0) {
     id: card.id || createId(),
     type: card.type || "agent",
     label: card.label || "Agent",
-    badge: card.badge || "Sample",
+    badge: typeof card.badge === "string" ? card.badge : "Sample",
     title: card.title || `未命名项目 ${index + 1}`,
     description: card.description || "",
     stack: card.stack || "",
@@ -133,9 +187,27 @@ export function normalizeCard(card, index = 0) {
           .filter(Boolean),
     githubUrl: card.githubUrl || "",
     screenshot: card.screenshot || "",
+    ownerUsername: card.ownerUsername || "",
+    ownerRole: card.ownerRole || "",
     createdAt: card.createdAt || "",
     updatedAt: card.updatedAt || "",
   };
+}
+
+export function normalizeAppType(type, index = 0) {
+  const label = String(type?.label || "").trim() || `类型 ${index + 1}`;
+  return {
+    id: String(type?.id || "").trim() || createTypeId(label),
+    label,
+  };
+}
+
+export function getAppTypeLabel(appTypes, typeId) {
+  const matched = Array.isArray(appTypes)
+    ? appTypes.find((item) => item.id === typeId)
+    : null;
+
+  return matched?.label || String(typeId || "").trim() || "未分类";
 }
 
 export function normalizeSiteData(data) {
@@ -152,14 +224,34 @@ export function normalizeSiteData(data) {
     ...(input.catalog || {}),
   };
 
+  merged.appTypes = Array.isArray(input.appTypes) && input.appTypes.length > 0
+    ? input.appTypes.map((type, index) => normalizeAppType(type, index))
+    : merged.appTypes.map((type, index) => normalizeAppType(type, index));
+
   merged.cards = Array.isArray(input.cards) && input.cards.length > 0
-    ? input.cards.map((card, index) => normalizeCard(card, index))
-    : merged.cards.map((card, index) => normalizeCard(card, index));
+    ? input.cards.map((card, index) => {
+        const normalizedCard = normalizeCard(card, index);
+        return {
+          ...normalizedCard,
+          label: getAppTypeLabel(merged.appTypes, normalizedCard.type),
+        };
+      })
+    : merged.cards.map((card, index) => {
+        const normalizedCard = normalizeCard(card, index);
+        return {
+          ...normalizedCard,
+          label: getAppTypeLabel(merged.appTypes, normalizedCard.type),
+        };
+      });
 
   return merged;
 }
 
 export async function readSiteData() {
+  if (!hasBlobToken()) {
+    return normalizeSiteData(await readLocalJson(LOCAL_SITE_CONTENT_FILE, DEFAULT_SITE_DATA));
+  }
+
   try {
     const result = await list({
       limit: 1,
@@ -188,6 +280,11 @@ export async function readSiteData() {
 
 export async function writeSiteData(data) {
   const normalized = normalizeSiteData(data);
+
+  if (!hasBlobToken()) {
+    await writeLocalJson(LOCAL_SITE_CONTENT_FILE, normalized);
+    return normalized;
+  }
 
   await put(SITE_CONTENT_PATHNAME, JSON.stringify(normalized, null, 2), {
     access: "public",
@@ -227,6 +324,15 @@ export async function uploadCardImageFromDataUrl(dataUrl, filename = "screenshot
     || "screenshot";
 
   const extension = getExtensionFromMime(contentType);
+
+  if (!hasBlobToken()) {
+    await ensureDirectory(LOCAL_UPLOAD_DIR);
+    const fileName = `${Date.now()}-${safeName}.${extension}`;
+    const filePath = path.join(LOCAL_UPLOAD_DIR, fileName);
+    await fs.writeFile(filePath, buffer);
+    return `/uploads/cards/${fileName}`;
+  }
+
   const blob = await put(`cards/${Date.now()}-${safeName}.${extension}`, buffer, {
     access: "public",
     addRandomSuffix: true,

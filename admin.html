@@ -42,6 +42,12 @@
             <button class="admin-nav-item" type="button" data-page="cards">
               应用管理
             </button>
+            <button class="admin-nav-item" type="button" data-page="types">
+              应用类型
+            </button>
+            <button class="admin-nav-item" type="button" data-page="members">
+              成员管理
+            </button>
           </nav>
 
           <div class="admin-content">
@@ -129,6 +135,35 @@
                 <div class="admin-card-list" id="admin-card-list"></div>
               </section>
             </section>
+
+            <section class="admin-page" data-page-panel="types">
+              <section class="admin-panel">
+                <div class="admin-panel-head">
+                  <div>
+                    <p class="admin-eyebrow">App Types</p>
+                    <h2>应用类型管理</h2>
+                    <p>新增、修改或删除卡片类型，前台筛选与创建表单会自动同步。</p>
+                  </div>
+                  <button class="admin-button admin-button-primary" id="create-type" type="button">
+                    新建类型
+                  </button>
+                </div>
+                <div class="admin-type-list" id="admin-type-list"></div>
+              </section>
+            </section>
+
+            <section class="admin-page" data-page-panel="members">
+              <section class="admin-panel">
+                <div class="admin-panel-head">
+                  <div>
+                    <p class="admin-eyebrow">Members</p>
+                    <h2>成员管理</h2>
+                    <p>这里展示已注册成员及他们上传的应用数量。</p>
+                  </div>
+                </div>
+                <div class="admin-member-list" id="admin-member-list"></div>
+              </section>
+            </section>
           </div>
         </div>
       </section>
@@ -152,11 +187,7 @@
           <div class="admin-grid">
             <label class="admin-field">
               <span>类型 type</span>
-              <select id="card-type-input">
-                <option value="agent">agent</option>
-                <option value="extension">extension</option>
-                <option value="skill">skill</option>
-              </select>
+              <select id="card-type-input"></select>
             </label>
             <label class="admin-field">
               <span>标签 label</span>
@@ -205,7 +236,45 @@
 
           <div class="admin-form-actions">
             <button class="admin-button admin-button-primary" type="submit">保存卡片</button>
+            <button class="admin-button admin-button-ghost" id="delete-card-in-modal" type="button" hidden>
+              删除卡片
+            </button>
             <button class="admin-button admin-button-ghost" id="reset-card-form" type="button">
+              清空表单
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div class="admin-modal" id="type-modal" hidden>
+      <button class="admin-modal-backdrop" type="button" aria-label="关闭类型弹窗" data-close-type-modal></button>
+      <section class="admin-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="type-modal-title">
+        <div class="admin-modal-head">
+          <div>
+            <p class="admin-eyebrow">Type Editor</p>
+            <h2 id="type-modal-title">新建类型</h2>
+          </div>
+          <button class="admin-button admin-button-ghost" type="button" data-close-type-modal>
+            关闭
+          </button>
+        </div>
+
+        <form class="admin-card-form" id="type-form">
+          <input id="type-id-input" type="hidden" />
+          <div class="admin-grid">
+            <label class="admin-field admin-field-full">
+              <span>类型名称</span>
+              <input id="type-label-input" type="text" placeholder="例如：工作流 / SaaS 工具 / 模板" required />
+            </label>
+          </div>
+
+          <div class="admin-form-actions">
+            <button class="admin-button admin-button-primary" type="submit">保存类型</button>
+            <button class="admin-button admin-button-ghost" id="delete-type-in-modal" type="button" hidden>
+              删除类型
+            </button>
+            <button class="admin-button admin-button-ghost" id="reset-type-form" type="button">
               清空表单
             </button>
           </div>
