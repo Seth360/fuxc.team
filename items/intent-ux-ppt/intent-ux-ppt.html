@@ -410,11 +410,18 @@
   [data-anim="right"]{transform:translateX(24px)}
   [data-anim="line"]{opacity:0;transform:translateY(10px)}
   [data-animate="pipeline"] [data-anim]{opacity:.15}
-  .slide-architecture[data-animate="pipeline"] [data-anim]{opacity:.52}
-  .slide-architecture .step-title{color:rgba(var(--ink-rgb),.88)}
-  .slide-architecture .step-desc{opacity:.9;color:rgba(var(--ink-rgb),.72)}
-  .slide-architecture .callout{color:rgba(var(--ink-rgb),.72)}
-  .slide-architecture .callout-src{opacity:.72}
+  .slide-architecture .pipeline-label{opacity:1;color:rgba(var(--ink-rgb),.72)}
+  .slide-architecture .step-nb{opacity:1;color:rgba(var(--ink-rgb),.52)}
+  .slide-architecture .step-title{opacity:1;color:rgba(var(--ink-rgb),.96)}
+  .slide-architecture .step-desc{opacity:1;color:rgba(var(--ink-rgb),.84)}
+  .slide-architecture .callout{
+    opacity:1;
+    color:rgba(var(--ink-rgb),.82);
+    background:rgba(var(--paper-rgb),.42);
+    border-left:4px solid rgba(var(--ink-rgb),.18);
+    padding:2.2vh 1.4vw 1.8vh 1.4vw;
+  }
+  .slide-architecture .callout-src{opacity:.82;color:rgba(var(--ink-rgb),.62)}
 
   /* ---------- 响应式降级 ---------- */
   @media (max-width:900px){
@@ -653,24 +660,24 @@
     <div class="pipeline-section">
       <div class="pipeline-label">From intent to correction</div>
       <div class="pipeline" data-cols="3">
-        <div class="step" data-anim="step">
+        <div class="step">
           <div class="step-nb">01</div>
           <div class="step-title">意图层</div>
           <div class="step-desc">接收目标；融合文字、语音、屏幕、相机和历史上下文，帮用户形成可用意图。</div>
         </div>
-        <div class="step" data-anim="step">
+        <div class="step">
           <div class="step-nb">02</div>
           <div class="step-title">编排层</div>
           <div class="step-desc">展示计划、数据来源、权限、影响对象和行动收据；在执行前后制造可理解性。</div>
         </div>
-        <div class="step" data-anim="step">
+        <div class="step">
           <div class="step-nb">03</div>
           <div class="step-title">操控层</div>
           <div class="step-desc">保留传统 GUI 作为细粒度修正、边界情况编辑和紧急覆盖的退路。</div>
         </div>
       </div>
     </div>
-    <div class="callout" style="margin-top:6vh" data-anim>
+    <div class="callout" style="margin-top:6vh">
       屏幕不再是工作的起点，而是检查、协商、纠偏的地方。用户操控的对象从“控件”变成“计划”。
       <div class="callout-src">— 中文整理 · Jakob Nielsen 文章观点</div>
     </div>
