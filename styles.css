@@ -264,6 +264,25 @@ button {
     linear-gradient(180deg, rgba(3, 8, 19, 0.92) 0%, rgba(5, 13, 25, 1) 100%);
 }
 
+.knowledge-panel {
+  background:
+    radial-gradient(circle at top left, rgba(255, 154, 61, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(4, 10, 20, 0.96) 0%, rgba(6, 14, 27, 1) 100%);
+}
+
+.knowledge-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(180deg, transparent 0%, black 14%, black 82%, transparent 100%);
+  opacity: 0.28;
+  pointer-events: none;
+}
+
 .catalog-panel::before {
   content: "";
   position: absolute;
@@ -329,6 +348,11 @@ button {
   justify-content: flex-end;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.knowledge-hint {
+  color: var(--text-muted);
+  font-size: 0.95rem;
 }
 
 .catalog-user,
@@ -416,6 +440,12 @@ button {
   gap: 18px;
 }
 
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
 .cards-page-body {
   min-height: 100vh;
   background:
@@ -487,6 +517,35 @@ button {
     transform 220ms ease,
     border-color 220ms ease,
     background-color 220ms ease;
+}
+
+.knowledge-card {
+  display: grid;
+  gap: 18px;
+  min-height: 224px;
+  padding: 22px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease;
+}
+
+.knowledge-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.24);
+  background: var(--surface-strong);
+}
+
+.knowledge-card:focus-visible {
+  outline: 2px solid var(--accent-cool);
+  outline-offset: 4px;
 }
 
 .work-card:hover {
@@ -1009,6 +1068,10 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .knowledge-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .hero-metrics {
     max-width: none;
   }
@@ -1044,6 +1107,10 @@ button {
 
   .hero-metrics,
   .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .knowledge-grid {
     grid-template-columns: 1fr;
   }
 

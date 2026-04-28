@@ -16,6 +16,12 @@
       description:
         "第二屏聚合展示我做过的 Agent、浏览器插件与 Skill。下面先放了一组可直接替换的示例卡片，你后续只需要改后台里的数据即可。",
     },
+    knowledge: {
+      sectionTag: "Knowledge Share",
+      title: "知识共享",
+      description:
+        "把值得反复传播的页面、文档和方法论沉淀在这里。点击卡片即可直接进入链接。",
+    },
     appTypes: [
       {
         id: "agent",
@@ -116,6 +122,20 @@
         screenshot: "",
       },
     ],
+    knowledgeItems: [
+      {
+        id: "knowledge-intent-ux-ppt",
+        title: "意图发现 · AI UX 的下一次范式转移",
+        url: "./items/intent-ux-ppt/intent-ux-ppt.html",
+        description:
+          "以横向叙事方式呈现的示例页面，讨论 AI 时代里交互入口从功能导航转向意图理解的产品机会。",
+        tags: ["Intent UX", "Presentation", "Example"],
+        ownerUsername: "",
+        ownerRole: "",
+        createdAt: "",
+        updatedAt: "",
+      },
+    ],
   };
 
   function clone(value) {
@@ -184,6 +204,25 @@
     };
   }
 
+  function normalizeKnowledgeItem(item, index) {
+    return {
+      id: item.id || createId(),
+      title: item.title || `未命名知识 ${index + 1}`,
+      url: item.url || "",
+      description: item.description || "",
+      tags: Array.isArray(item.tags)
+        ? item.tags.filter(Boolean)
+        : String(item.tags || "")
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean),
+      ownerUsername: item.ownerUsername || "",
+      ownerRole: item.ownerRole || "",
+      createdAt: item.createdAt || "",
+      updatedAt: item.updatedAt || "",
+    };
+  }
+
   function normalizeSiteData(data) {
     const merged = clone(DEFAULT_SITE_DATA);
     const input = data || {};
@@ -197,6 +236,11 @@
     merged.catalog = {
       ...merged.catalog,
       ...(input.catalog || {}),
+    };
+
+    merged.knowledge = {
+      ...merged.knowledge,
+      ...(input.knowledge || {}),
     };
 
     merged.appTypes = Array.isArray(input.appTypes) && input.appTypes.length > 0
@@ -216,8 +260,12 @@
           return {
             ...normalizedCard,
             label: getCardLabel(merged.appTypes, normalizedCard.type),
-          };
-        });
+        };
+      });
+
+    merged.knowledgeItems = Array.isArray(input.knowledgeItems) && input.knowledgeItems.length > 0
+      ? input.knowledgeItems.map((item, index) => normalizeKnowledgeItem(item, index))
+      : merged.knowledgeItems.map((item, index) => normalizeKnowledgeItem(item, index));
 
     return merged;
   }
@@ -330,6 +378,13 @@
     });
   }
 
+  async function createKnowledgeItem(item) {
+    return requestJson("/api/knowledge-items", {
+      method: "POST",
+      body: JSON.stringify(item),
+    });
+  }
+
   async function getMembers() {
     return requestJson("/api/members", {
       method: "GET",
@@ -363,6 +418,18 @@
     });
   }
 
+  function createEmptyKnowledgeItem() {
+    return normalizeKnowledgeItem({
+      id: "",
+      title: "",
+      url: "",
+      description: "",
+      tags: [],
+      ownerUsername: "",
+      ownerRole: "",
+    });
+  }
+
   window.FUXCSite = {
     DEFAULT_SITE_DATA: clone(DEFAULT_SITE_DATA),
     getSiteData,
@@ -370,14 +437,17 @@
     resetSiteData,
     normalizeSiteData,
     normalizeCard,
+    normalizeKnowledgeItem,
     normalizeAppType,
     createEmptyCard,
+    createEmptyKnowledgeItem,
     login,
     register,
     logout,
     getSession,
     uploadImage,
     createCard,
+    createKnowledgeItem,
     getMembers,
     deleteMember,
   };

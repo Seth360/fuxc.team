@@ -18,6 +18,18 @@ function createCardCountMap(cards) {
   }, {});
 }
 
+function createKnowledgeCountMap(items) {
+  return items.reduce((acc, item) => {
+    const key = String(item.ownerUsername || "").trim().toLowerCase();
+    if (!key) {
+      return acc;
+    }
+
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+}
+
 export async function GET(request) {
   if (!isAdmin(request)) {
     return unauthorized();
@@ -28,10 +40,15 @@ export async function GET(request) {
     readSiteData(),
   ]);
   const cardCountMap = createCardCountMap(siteData.cards || []);
+  const knowledgeCountMap = createKnowledgeCountMap(siteData.knowledgeItems || []);
 
   return json({
     members: members.map((member) =>
-      sanitizeMember(member, cardCountMap[String(member.username || "").toLowerCase()] || 0)
+      sanitizeMember(
+        member,
+        (cardCountMap[String(member.username || "").toLowerCase()] || 0)
+          + (knowledgeCountMap[String(member.username || "").toLowerCase()] || 0)
+      )
     ),
   });
 }
@@ -71,14 +88,20 @@ export async function DELETE(request) {
   const nextCards = siteData.cards.filter(
     (card) => String(card.ownerUsername || "").trim().toLowerCase() !== removedMember.username.toLowerCase()
   );
+  const nextKnowledgeItems = (siteData.knowledgeItems || []).filter(
+    (item) => String(item.ownerUsername || "").trim().toLowerCase() !== removedMember.username.toLowerCase()
+  );
   const saved = await writeSiteData({
     ...siteData,
     cards: nextCards,
+    knowledgeItems: nextKnowledgeItems,
   });
 
   return json({
     ok: true,
     removedMember,
-    removedCardCount: siteData.cards.length - saved.cards.length,
+    removedCardCount:
+      (siteData.cards.length - saved.cards.length)
+      + ((siteData.knowledgeItems || []).length - (saved.knowledgeItems || []).length),
   });
 }

@@ -5,6 +5,7 @@ const {
   register,
   logout,
   createCard,
+  createKnowledgeItem,
   normalizeSiteData,
   uploadImage,
 } = window.FUXCSite;
@@ -15,12 +16,17 @@ const panels = Array.from(document.querySelectorAll(".panel"));
 const filterBar = document.getElementById("filter-bar");
 const cardGrid = document.getElementById("card-grid");
 const visibleCount = document.getElementById("visible-count");
+const knowledgeGrid = document.getElementById("knowledge-grid");
+const knowledgeVisibleCount = document.getElementById("knowledge-visible-count");
 const adminEntry = document.getElementById("admin-entry");
 const heroSecondaryAction = document.getElementById("hero-secondary-action");
 const catalogUser = document.getElementById("catalog-user");
 const catalogAddButton = document.getElementById("catalog-add-button");
 const catalogLogoutButton = document.getElementById("catalog-logout-button");
 const catalogViewAll = document.getElementById("catalog-view-all");
+const knowledgeUser = document.getElementById("knowledge-user");
+const knowledgeAddButton = document.getElementById("knowledge-add-button");
+const knowledgeLogoutButton = document.getElementById("knowledge-logout-button");
 
 const authModal = document.getElementById("auth-modal");
 const authTabs = Array.from(document.querySelectorAll(".auth-tab"));
@@ -48,6 +54,14 @@ const creatorScreenshotInput = document.getElementById("creator-screenshot");
 const creatorScreenshotFileInput = document.getElementById("creator-screenshot-file");
 const creatorPreview = document.getElementById("creator-preview");
 const creatorError = document.getElementById("creator-error");
+
+const knowledgeCreatorModal = document.getElementById("knowledge-creator-modal");
+const knowledgeCreatorForm = document.getElementById("knowledge-creator-form");
+const knowledgeTitleInput = document.getElementById("knowledge-title-input");
+const knowledgeUrlInput = document.getElementById("knowledge-url-input");
+const knowledgeDescriptionInput = document.getElementById("knowledge-description-input");
+const knowledgeTagsInput = document.getElementById("knowledge-tags-input");
+const knowledgeCreatorError = document.getElementById("knowledge-creator-error");
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const cardModal = document.getElementById("card-modal");
@@ -200,6 +214,12 @@ function applyCatalogContent() {
   document.getElementById("catalog-description").textContent = siteData.catalog.description;
 }
 
+function applyKnowledgeContent() {
+  document.getElementById("knowledge-section-tag").textContent = siteData.knowledge.sectionTag;
+  document.getElementById("knowledge-title").textContent = siteData.knowledge.title;
+  document.getElementById("knowledge-description").textContent = siteData.knowledge.description;
+}
+
 function getFilteredCards(filter) {
   return filter === "all"
     ? siteData.cards
@@ -271,6 +291,35 @@ function renderCards(filter) {
   }
 }
 
+function renderKnowledgeItems() {
+  const items = Array.isArray(siteData.knowledgeItems) ? siteData.knowledgeItems : [];
+  knowledgeVisibleCount.textContent = String(items.length).padStart(2, "0");
+
+  knowledgeGrid.innerHTML = items
+    .map(
+      (item) => `
+        <a class="knowledge-card" href="${escapeHtml(item.url)}">
+          <div class="card-top">
+            <span class="card-type">Knowledge</span>
+            ${isCardNew(item) ? '<span class="card-badge is-new">NEW</span>' : ""}
+          </div>
+          <div>
+            <h3>${escapeHtml(item.title)}</h3>
+            <p class="card-description">${escapeHtml(item.description)}</p>
+          </div>
+          <div class="card-meta card-meta-secondary">
+            <span>BY: ${escapeHtml(item.ownerUsername || "FUXC.TEAM")}</span>
+            <span>${escapeHtml(formatCardTime(item.createdAt))}</span>
+          </div>
+          <div class="tag-list">
+            ${item.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+          </div>
+        </a>
+      `
+    )
+    .join("");
+}
+
 function renderModal(card) {
   modalLabel.textContent = card.label;
   modalTitle.textContent = card.title;
@@ -332,7 +381,7 @@ function openAuthModal() {
 
 function closeAuthModal() {
   authModal.hidden = true;
-  if (creatorModal.hidden && cardModal.hidden) {
+  if (creatorModal.hidden && knowledgeCreatorModal.hidden && cardModal.hidden) {
     document.body.classList.remove("modal-open");
   }
 }
@@ -348,7 +397,23 @@ function openCreatorModal() {
 
 function closeCreatorModal() {
   creatorModal.hidden = true;
-  if (authModal.hidden && cardModal.hidden) {
+  if (authModal.hidden && knowledgeCreatorModal.hidden && cardModal.hidden) {
+    document.body.classList.remove("modal-open");
+  }
+}
+
+function openKnowledgeCreatorModal() {
+  knowledgeCreatorError.hidden = true;
+  knowledgeCreatorModal.hidden = false;
+  document.body.classList.add("modal-open");
+  window.setTimeout(() => {
+    knowledgeTitleInput.focus();
+  }, 0);
+}
+
+function closeKnowledgeCreatorModal() {
+  knowledgeCreatorModal.hidden = true;
+  if (authModal.hidden && creatorModal.hidden && cardModal.hidden) {
     document.body.classList.remove("modal-open");
   }
 }
@@ -357,6 +422,11 @@ function resetCreatorForm() {
   creatorForm.reset();
   creatorPreview.textContent = "暂无截图预览";
   creatorError.hidden = true;
+}
+
+function resetKnowledgeCreatorForm() {
+  knowledgeCreatorForm.reset();
+  knowledgeCreatorError.hidden = true;
 }
 
 function updateCreatorPreview(src, title) {
@@ -375,11 +445,16 @@ function updateAuthUI() {
   catalogUser.hidden = !session.authenticated;
   catalogLogoutButton.hidden = !session.authenticated;
   catalogAddButton.hidden = !isMember;
+  knowledgeUser.hidden = !session.authenticated;
+  knowledgeLogoutButton.hidden = !session.authenticated;
+  knowledgeAddButton.hidden = !isMember;
 
   if (session.authenticated) {
-    catalogUser.textContent = session.isAdmin
+    const label = session.isAdmin
       ? `${session.username} · 管理员`
       : `${session.username} · 成员`;
+    catalogUser.textContent = label;
+    knowledgeUser.textContent = label;
   }
 }
 
@@ -406,7 +481,7 @@ function setAuthMode(nextMode) {
   authPrimaryButton.textContent = isRegister ? "注册" : "登录";
   authNote.textContent = isRegister
     ? "注册时需要重复输入密码，使用邀请码才能完成注册。"
-    : "普通用户登录后即可在应用库上传自己的卡片。";
+    : "普通用户登录后即可在应用库和知识共享里提交自己的内容。";
   authPasswordInput.autocomplete = isRegister ? "new-password" : "current-password";
   authError.hidden = true;
 }
@@ -436,9 +511,11 @@ async function refreshSiteData() {
   siteData = normalizeSiteData(await getSiteData());
   applyHeroContent();
   applyCatalogContent();
+  applyKnowledgeContent();
   renderFilterBar();
   renderTypeOptions(creatorTypeInput, creatorTypeInput.value);
   renderCards(activeFilter);
+  renderKnowledgeItems();
 
   if (activeModalCardId) {
     const currentCard = siteData.cards.find((item) => item.id === activeModalCardId);
@@ -535,6 +612,30 @@ async function handleCreatorSubmit(event) {
   scrollToPanel("catalog");
 }
 
+async function handleKnowledgeCreatorSubmit(event) {
+  event.preventDefault();
+
+  if (!session.authenticated || session.isAdmin) {
+    closeKnowledgeCreatorModal();
+    return;
+  }
+
+  await createKnowledgeItem({
+    title: knowledgeTitleInput.value.trim(),
+    url: knowledgeUrlInput.value.trim(),
+    description: knowledgeDescriptionInput.value.trim(),
+    tags: knowledgeTagsInput.value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean),
+  });
+
+  resetKnowledgeCreatorForm();
+  closeKnowledgeCreatorModal();
+  await refreshSiteData();
+  scrollToPanel("knowledge");
+}
+
 sectionButtons.forEach((button) => {
   button.addEventListener("click", (event) => {
     const target = event.currentTarget.dataset.target;
@@ -562,11 +663,25 @@ catalogAddButton.addEventListener("click", () => {
   openCreatorModal();
 });
 
+knowledgeAddButton.addEventListener("click", () => {
+  resetKnowledgeCreatorForm();
+  openKnowledgeCreatorModal();
+});
+
 catalogLogoutButton.addEventListener("click", async () => {
   await logout().catch(() => {});
   await refreshSession();
   closeAuthModal();
   closeCreatorModal();
+  closeKnowledgeCreatorModal();
+});
+
+knowledgeLogoutButton.addEventListener("click", async () => {
+  await logout().catch(() => {});
+  await refreshSession();
+  closeAuthModal();
+  closeCreatorModal();
+  closeKnowledgeCreatorModal();
 });
 
 authForm.addEventListener("submit", (event) => {
@@ -585,6 +700,12 @@ authModal.addEventListener("click", (event) => {
 creatorModal.addEventListener("click", (event) => {
   if (event.target.closest("[data-close-creator]")) {
     closeCreatorModal();
+  }
+});
+
+knowledgeCreatorModal.addEventListener("click", (event) => {
+  if (event.target.closest("[data-close-knowledge-creator]")) {
+    closeKnowledgeCreatorModal();
   }
 });
 
@@ -610,6 +731,13 @@ creatorForm.addEventListener("submit", (event) => {
   });
 });
 
+knowledgeCreatorForm.addEventListener("submit", (event) => {
+  handleKnowledgeCreatorSubmit(event).catch((error) => {
+    knowledgeCreatorError.textContent = getErrorMessage(error, "提交内容失败，请稍后再试。");
+    knowledgeCreatorError.hidden = false;
+  });
+});
+
 cardGrid.addEventListener("click", (event) => {
   const card = event.target.closest("[data-card-id]");
   if (!card) {
@@ -626,6 +754,11 @@ cardModal.addEventListener("click", (event) => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
+    if (!knowledgeCreatorModal.hidden) {
+      closeKnowledgeCreatorModal();
+      return;
+    }
+
     if (!creatorModal.hidden) {
       closeCreatorModal();
       return;

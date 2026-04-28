@@ -8,7 +8,9 @@ const {
   normalizeSiteData,
   normalizeAppType,
   createEmptyCard,
+  createEmptyKnowledgeItem,
   normalizeCard,
+  normalizeKnowledgeItem,
   logout,
   uploadImage,
 } = window.FUXCSite;
@@ -29,11 +31,19 @@ const catalogFields = {
   description: document.getElementById("catalog-description-input"),
 };
 
+const knowledgeFields = {
+  sectionTag: document.getElementById("knowledge-tag-input"),
+  title: document.getElementById("knowledge-title-copy-input"),
+  description: document.getElementById("knowledge-description-copy-input"),
+};
+
 const navButtons = Array.from(document.querySelectorAll("[data-page]"));
 const pagePanels = Array.from(document.querySelectorAll("[data-page-panel]"));
 const adminCardList = document.getElementById("admin-card-list");
+const adminKnowledgeList = document.getElementById("admin-knowledge-list");
 const adminTypeList = document.getElementById("admin-type-list");
 const adminMemberList = document.getElementById("admin-member-list");
+
 const cardModal = document.getElementById("card-modal");
 const cardModalTitle = document.getElementById("card-modal-title");
 const cardForm = document.getElementById("card-form");
@@ -51,18 +61,31 @@ const cardScreenshotInput = document.getElementById("card-screenshot-input");
 const cardScreenshotFileInput = document.getElementById("card-screenshot-file-input");
 const cardPreview = document.getElementById("card-preview");
 const deleteCardInModalButton = document.getElementById("delete-card-in-modal");
+
+const knowledgeModal = document.getElementById("knowledge-modal");
+const knowledgeModalTitle = document.getElementById("knowledge-modal-title");
+const knowledgeForm = document.getElementById("knowledge-form");
+const knowledgeIdInput = document.getElementById("knowledge-id-input");
+const knowledgeTitleInput = document.getElementById("knowledge-title-admin-input");
+const knowledgeUrlInput = document.getElementById("knowledge-url-admin-input");
+const knowledgeDescriptionInput = document.getElementById("knowledge-description-admin-input");
+const knowledgeTagsInput = document.getElementById("knowledge-tags-admin-input");
+const deleteKnowledgeInModalButton = document.getElementById("delete-knowledge-in-modal");
+
 const typeModal = document.getElementById("type-modal");
 const typeModalTitle = document.getElementById("type-modal-title");
 const typeForm = document.getElementById("type-form");
 const typeIdInput = document.getElementById("type-id-input");
 const typeLabelInput = document.getElementById("type-label-input");
 const deleteTypeInModalButton = document.getElementById("delete-type-in-modal");
+
 const adminToast = document.getElementById("admin-toast");
 const adminToastMessage = document.getElementById("admin-toast-message");
 
 let siteData = normalizeSiteData({});
 let members = [];
 let draggedCardId = "";
+let draggedKnowledgeId = "";
 let toastTimer = null;
 
 function escapeHtml(value) {
@@ -118,6 +141,15 @@ function showToast(message) {
   }, 2400);
 }
 
+function readImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("图片读取失败"));
+    reader.readAsDataURL(file);
+  });
+}
+
 function getAppTypes() {
   return Array.isArray(siteData.appTypes) && siteData.appTypes.length > 0
     ? siteData.appTypes
@@ -131,7 +163,7 @@ function getAppTypeLabel(typeId) {
 
 function renderTypeOptions(selectElement, selectedType = "") {
   const appTypes = getAppTypes();
-  const options = getAppTypes()
+  const options = appTypes
     .map(
       (type) => `
         <option value="${escapeHtml(type.id)}" ${type.id === selectedType ? "selected" : ""}>
@@ -176,8 +208,10 @@ async function refreshData() {
 
   fillHeroFields();
   fillCatalogFields();
+  fillKnowledgeFields();
   renderTypeOptions(cardTypeInput, cardTypeInput.value);
   renderCardList();
+  renderKnowledgeList();
   renderTypeList();
   renderMemberList();
 }
@@ -194,6 +228,12 @@ function fillHeroFields() {
 function fillCatalogFields() {
   Object.entries(catalogFields).forEach(([key, input]) => {
     input.value = siteData.catalog[key] || "";
+  });
+}
+
+function fillKnowledgeFields() {
+  Object.entries(knowledgeFields).forEach(([key, input]) => {
+    input.value = siteData.knowledge[key] || "";
   });
 }
 
@@ -216,6 +256,34 @@ function renderCardList() {
               编辑
             </button>
             <button class="admin-button admin-button-ghost" type="button" data-delete-card="${card.id}">
+              删除
+            </button>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function renderKnowledgeList() {
+  const items = Array.isArray(siteData.knowledgeItems) ? siteData.knowledgeItems : [];
+  adminKnowledgeList.innerHTML = items
+    .map(
+      (item) => `
+        <article class="admin-card-item" draggable="true" data-knowledge-id="${item.id}">
+          <p class="admin-eyebrow">Knowledge Share</p>
+          <span class="admin-card-grip">Drag</span>
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>${escapeHtml(item.description || "暂无简介")}</p>
+          <div class="admin-card-meta">
+            <span>${escapeHtml(item.url)}</span>
+            ${item.ownerUsername ? `<span>成员：${escapeHtml(item.ownerUsername)}</span>` : "<span>站点内置</span>"}
+          </div>
+          <div class="admin-card-actions">
+            <button class="admin-button admin-button-primary" type="button" data-edit-knowledge="${item.id}">
+              编辑
+            </button>
+            <button class="admin-button admin-button-ghost" type="button" data-delete-knowledge="${item.id}">
               删除
             </button>
           </div>
@@ -257,11 +325,25 @@ function renderMemberList() {
   }
 
   adminMemberList.innerHTML = members
-    .map(
-      (member) => {
-        const memberCards = siteData.cards.filter((card) => card.ownerUsername === member.username);
+    .map((member) => {
+      const memberCards = siteData.cards.filter((card) => card.ownerUsername === member.username);
+      const memberKnowledge = (siteData.knowledgeItems || []).filter((item) => item.ownerUsername === member.username);
+      const memberItems = [
+        ...memberCards.map((card) => ({
+          id: card.id,
+          title: card.title,
+          description: card.description,
+          kind: "card",
+        })),
+        ...memberKnowledge.map((item) => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          kind: "knowledge",
+        })),
+      ];
 
-        return `
+      return `
         <article class="admin-member-item">
           <div class="admin-member-head">
             <div>
@@ -269,7 +351,7 @@ function renderMemberList() {
               <h3>${escapeHtml(member.username)}</h3>
             </div>
             <div class="admin-member-head-actions">
-              <span class="admin-member-badge">${String(member.cardCount || 0).padStart(2, "0")} 张卡片</span>
+              <span class="admin-member-badge">${String(member.cardCount || 0).padStart(2, "0")} 项内容</span>
               <button class="admin-button admin-button-ghost" type="button" data-delete-member="${member.id}">
                 删除成员
               </button>
@@ -281,26 +363,29 @@ function renderMemberList() {
           </div>
           <div class="admin-member-card-previews">
             ${
-              memberCards.length
-                ? memberCards
+              memberItems.length
+                ? memberItems
                     .map(
-                      (card) => `
-                        <button class="admin-member-card-preview" type="button" data-edit-card="${card.id}">
+                      (item) => `
+                        <button
+                          class="admin-member-card-preview"
+                          type="button"
+                          ${item.kind === "card" ? `data-edit-card="${item.id}"` : `data-edit-knowledge="${item.id}"`}
+                        >
                           <div class="admin-member-card-copy">
-                            <strong>${escapeHtml(card.title)}</strong>
-                            <p>${escapeHtml(card.description || "暂无简介")}</p>
+                            <strong>${escapeHtml(item.title)}</strong>
+                            <p>${escapeHtml(item.description || "暂无简介")}</p>
                           </div>
                         </button>
                       `
                     )
                     .join("")
-                : '<p class="admin-empty-state">该成员还没有创建卡片。</p>'
+                : '<p class="admin-empty-state">该成员还没有创建内容。</p>'
             }
           </div>
         </article>
       `;
-      }
-    )
+    })
     .join("");
 }
 
@@ -332,6 +417,17 @@ function resetCardForm() {
   deleteCardInModalButton.hidden = true;
 }
 
+function resetKnowledgeForm() {
+  const empty = createEmptyKnowledgeItem();
+  knowledgeIdInput.value = "";
+  knowledgeTitleInput.value = empty.title;
+  knowledgeUrlInput.value = empty.url;
+  knowledgeDescriptionInput.value = empty.description;
+  knowledgeTagsInput.value = "";
+  knowledgeModalTitle.textContent = "新建知识条目";
+  deleteKnowledgeInModalButton.hidden = true;
+}
+
 function resetTypeForm() {
   typeIdInput.value = "";
   typeLabelInput.value = "";
@@ -345,6 +441,14 @@ function openCardModal() {
 
 function closeCardModal() {
   cardModal.hidden = true;
+}
+
+function openKnowledgeModal() {
+  knowledgeModal.hidden = false;
+}
+
+function closeKnowledgeModal() {
+  knowledgeModal.hidden = true;
 }
 
 function openTypeModal() {
@@ -377,6 +481,22 @@ function loadCardIntoForm(cardId) {
   cardModalTitle.textContent = "编辑卡片";
   deleteCardInModalButton.hidden = false;
   openCardModal();
+}
+
+function loadKnowledgeIntoForm(itemId) {
+  const item = (siteData.knowledgeItems || []).find((entry) => entry.id === itemId);
+  if (!item) {
+    return;
+  }
+
+  knowledgeIdInput.value = item.id;
+  knowledgeTitleInput.value = item.title;
+  knowledgeUrlInput.value = item.url;
+  knowledgeDescriptionInput.value = item.description;
+  knowledgeTagsInput.value = item.tags.join(", ");
+  knowledgeModalTitle.textContent = "编辑知识条目";
+  deleteKnowledgeInModalButton.hidden = false;
+  openKnowledgeModal();
 }
 
 function loadTypeIntoForm(typeId) {
@@ -427,13 +547,17 @@ async function saveCatalog() {
   showToast("第二屏标题已保存");
 }
 
-function readImageFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("图片读取失败"));
-    reader.readAsDataURL(file);
+async function saveKnowledgeCopy() {
+  await saveCurrentData({
+    ...siteData,
+    knowledge: {
+      ...siteData.knowledge,
+      sectionTag: knowledgeFields.sectionTag.value.trim(),
+      title: knowledgeFields.title.value.trim(),
+      description: knowledgeFields.description.value.trim(),
+    },
   });
+  showToast("知识共享标题已保存");
 }
 
 async function handleCardSubmit(event) {
@@ -491,6 +615,42 @@ async function handleCardSubmit(event) {
   showToast(exists ? "应用卡片已更新" : "新应用已创建");
 }
 
+async function handleKnowledgeSubmit(event) {
+  event.preventDefault();
+
+  const currentItem = (siteData.knowledgeItems || []).find((item) => item.id === knowledgeIdInput.value.trim());
+  const timestamp = new Date().toISOString();
+  const nextItem = normalizeKnowledgeItem({
+    id: knowledgeIdInput.value.trim(),
+    title: knowledgeTitleInput.value.trim(),
+    url: knowledgeUrlInput.value.trim(),
+    description: knowledgeDescriptionInput.value.trim(),
+    tags: knowledgeTagsInput.value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean),
+    ownerUsername: currentItem?.ownerUsername || "",
+    ownerRole: currentItem?.ownerRole || "",
+    createdAt: currentItem?.createdAt || timestamp,
+    updatedAt: timestamp,
+  });
+
+  const exists = (siteData.knowledgeItems || []).some((item) => item.id === nextItem.id);
+  const nextItems = exists
+    ? siteData.knowledgeItems.map((item) => (item.id === nextItem.id ? nextItem : item))
+    : [...(siteData.knowledgeItems || []), nextItem];
+
+  await saveCurrentData({
+    ...siteData,
+    knowledgeItems: nextItems,
+  });
+
+  renderKnowledgeList();
+  closeKnowledgeModal();
+  resetKnowledgeForm();
+  showToast(exists ? "知识条目已更新" : "新知识条目已创建");
+}
+
 async function saveCardOrder(nextCards) {
   await saveCurrentData({
     ...siteData,
@@ -498,6 +658,15 @@ async function saveCardOrder(nextCards) {
   });
   renderCardList();
   showToast("应用排序已保存");
+}
+
+async function saveKnowledgeOrder(nextItems) {
+  await saveCurrentData({
+    ...siteData,
+    knowledgeItems: nextItems,
+  });
+  renderKnowledgeList();
+  showToast("知识共享排序已保存");
 }
 
 async function saveTypeForm() {
@@ -606,34 +775,32 @@ async function handleDeleteType(typeId) {
   showToast("应用类型已删除");
 }
 
-function clearDragStates() {
-  Array.from(adminCardList.querySelectorAll(".admin-card-item")).forEach((item) => {
+function clearDragStates(container, selector) {
+  Array.from(container.querySelectorAll(selector)).forEach((item) => {
     item.classList.remove("is-dragging", "is-drag-over");
   });
 }
 
-function reorderCards(dragId, targetId, placeAfter = false) {
+function reorderItems(items, dragId, targetId, placeAfter = false) {
   if (!dragId || !targetId || dragId === targetId) {
-    return siteData.cards;
+    return items;
   }
 
-  const nextCards = [...siteData.cards];
-  const fromIndex = nextCards.findIndex((card) => card.id === dragId);
-  const targetIndex = nextCards.findIndex((card) => card.id === targetId);
+  const nextItems = [...items];
+  const fromIndex = nextItems.findIndex((item) => item.id === dragId);
+  const targetIndex = nextItems.findIndex((item) => item.id === targetId);
 
   if (fromIndex === -1 || targetIndex === -1) {
-    return siteData.cards;
+    return items;
   }
 
-  const [draggedCard] = nextCards.splice(fromIndex, 1);
-  let insertIndex = nextCards.findIndex((card) => card.id === targetId);
-
+  const [draggedItem] = nextItems.splice(fromIndex, 1);
+  let insertIndex = nextItems.findIndex((item) => item.id === targetId);
   if (placeAfter) {
     insertIndex += 1;
   }
-
-  nextCards.splice(insertIndex, 0, draggedCard);
-  return nextCards;
+  nextItems.splice(insertIndex, 0, draggedItem);
+  return nextItems;
 }
 
 navButtons.forEach((button) => {
@@ -650,9 +817,18 @@ document.getElementById("save-catalog").addEventListener("click", async () => {
   await saveCatalog();
 });
 
+document.getElementById("save-knowledge-copy").addEventListener("click", async () => {
+  await saveKnowledgeCopy();
+});
+
 document.getElementById("create-card").addEventListener("click", () => {
   resetCardForm();
   openCardModal();
+});
+
+document.getElementById("create-knowledge-item").addEventListener("click", () => {
+  resetKnowledgeForm();
+  openKnowledgeModal();
 });
 
 document.getElementById("create-type").addEventListener("click", () => {
@@ -662,6 +838,10 @@ document.getElementById("create-type").addEventListener("click", () => {
 
 document.getElementById("reset-card-form").addEventListener("click", () => {
   resetCardForm();
+});
+
+document.getElementById("reset-knowledge-form").addEventListener("click", () => {
+  resetKnowledgeForm();
 });
 
 document.getElementById("reset-type-form").addEventListener("click", () => {
@@ -691,6 +871,29 @@ deleteCardInModalButton.addEventListener("click", async () => {
   showToast("应用卡片已删除");
 });
 
+deleteKnowledgeInModalButton.addEventListener("click", async () => {
+  const itemId = knowledgeIdInput.value.trim();
+  const item = (siteData.knowledgeItems || []).find((entry) => entry.id === itemId);
+  if (!item) {
+    return;
+  }
+
+  const confirmed = window.confirm(`确定删除条目“${item.title}”吗？`);
+  if (!confirmed) {
+    return;
+  }
+
+  await saveCurrentData({
+    ...siteData,
+    knowledgeItems: (siteData.knowledgeItems || []).filter((entry) => entry.id !== itemId),
+  });
+  renderKnowledgeList();
+  renderMemberList();
+  closeKnowledgeModal();
+  resetKnowledgeForm();
+  showToast("知识条目已删除");
+});
+
 document.getElementById("logout-button").addEventListener("click", async () => {
   try {
     await logout();
@@ -708,6 +911,7 @@ document.getElementById("reset-site").addEventListener("click", async () => {
   siteData = await resetSiteData();
   await refreshData();
   resetCardForm();
+  resetKnowledgeForm();
   showToast("内容已恢复为默认值");
 });
 
@@ -742,6 +946,37 @@ adminCardList.addEventListener("click", async (event) => {
   showToast("应用卡片已删除");
 });
 
+adminKnowledgeList.addEventListener("click", async (event) => {
+  const editButton = event.target.closest("[data-edit-knowledge]");
+  if (editButton) {
+    loadKnowledgeIntoForm(editButton.dataset.editKnowledge);
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-delete-knowledge]");
+  if (!deleteButton) {
+    return;
+  }
+
+  const itemId = deleteButton.dataset.deleteKnowledge;
+  const item = (siteData.knowledgeItems || []).find((entry) => entry.id === itemId);
+  if (!item) {
+    return;
+  }
+
+  const confirmed = window.confirm(`确定删除条目“${item.title}”吗？`);
+  if (!confirmed) {
+    return;
+  }
+
+  await saveCurrentData({
+    ...siteData,
+    knowledgeItems: (siteData.knowledgeItems || []).filter((entry) => entry.id !== itemId),
+  });
+  renderKnowledgeList();
+  showToast("知识条目已删除");
+});
+
 adminTypeList.addEventListener("click", async (event) => {
   const editButton = event.target.closest("[data-edit-type]");
   if (editButton) {
@@ -756,9 +991,15 @@ adminTypeList.addEventListener("click", async (event) => {
 });
 
 adminMemberList.addEventListener("click", async (event) => {
-  const editButton = event.target.closest("[data-edit-card]");
-  if (editButton) {
-    loadCardIntoForm(editButton.dataset.editCard);
+  const editCardButton = event.target.closest("[data-edit-card]");
+  if (editCardButton) {
+    loadCardIntoForm(editCardButton.dataset.editCard);
+    return;
+  }
+
+  const editKnowledgeButton = event.target.closest("[data-edit-knowledge]");
+  if (editKnowledgeButton) {
+    loadKnowledgeIntoForm(editKnowledgeButton.dataset.editKnowledge);
     return;
   }
 
@@ -773,7 +1014,7 @@ adminMemberList.addEventListener("click", async (event) => {
     return;
   }
 
-  const confirmed = window.confirm(`确定删除成员“${member.username}”及其创建的全部卡片吗？`);
+  const confirmed = window.confirm(`确定删除成员“${member.username}”及其创建的全部内容吗？`);
   if (!confirmed) {
     return;
   }
@@ -781,7 +1022,7 @@ adminMemberList.addEventListener("click", async (event) => {
   try {
     const result = await deleteMember(memberId);
     await refreshData();
-    showToast(`已删除成员 ${member.username}，并移除 ${result.removedCardCount || 0} 张卡片`);
+    showToast(`已删除成员 ${member.username}，并移除 ${result.removedCardCount || 0} 项内容`);
   } catch (error) {
     window.alert(`删除成员失败：${getErrorMessage(error, "请稍后再试。")}`);
   }
@@ -801,7 +1042,7 @@ adminCardList.addEventListener("dragstart", (event) => {
 
 adminCardList.addEventListener("dragover", (event) => {
   event.preventDefault();
-  clearDragStates();
+  clearDragStates(adminCardList, ".admin-card-item");
 
   const target = event.target.closest(".admin-card-item");
   if (target && target.dataset.cardId !== draggedCardId) {
@@ -818,14 +1059,14 @@ adminCardList.addEventListener("dragleave", (event) => {
 
 adminCardList.addEventListener("dragend", () => {
   draggedCardId = "";
-  clearDragStates();
+  clearDragStates(adminCardList, ".admin-card-item");
 });
 
 adminCardList.addEventListener("drop", async (event) => {
   event.preventDefault();
 
   const target = event.target.closest(".admin-card-item");
-  clearDragStates();
+  clearDragStates(adminCardList, ".admin-card-item");
 
   if (!target || !draggedCardId || target.dataset.cardId === draggedCardId) {
     draggedCardId = "";
@@ -834,7 +1075,7 @@ adminCardList.addEventListener("drop", async (event) => {
 
   const rect = target.getBoundingClientRect();
   const placeAfter = event.clientY > rect.top + rect.height / 2;
-  const nextCards = reorderCards(draggedCardId, target.dataset.cardId, placeAfter);
+  const nextCards = reorderItems(siteData.cards, draggedCardId, target.dataset.cardId, placeAfter);
   draggedCardId = "";
 
   if (nextCards !== siteData.cards) {
@@ -842,9 +1083,70 @@ adminCardList.addEventListener("drop", async (event) => {
   }
 });
 
+adminKnowledgeList.addEventListener("dragstart", (event) => {
+  const item = event.target.closest(".admin-card-item");
+  if (!item) {
+    return;
+  }
+
+  draggedKnowledgeId = item.dataset.knowledgeId || "";
+  item.classList.add("is-dragging");
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", draggedKnowledgeId);
+});
+
+adminKnowledgeList.addEventListener("dragover", (event) => {
+  event.preventDefault();
+  clearDragStates(adminKnowledgeList, ".admin-card-item");
+
+  const target = event.target.closest(".admin-card-item");
+  if (target && target.dataset.knowledgeId !== draggedKnowledgeId) {
+    target.classList.add("is-drag-over");
+  }
+});
+
+adminKnowledgeList.addEventListener("dragleave", (event) => {
+  const target = event.target.closest(".admin-card-item");
+  if (target) {
+    target.classList.remove("is-drag-over");
+  }
+});
+
+adminKnowledgeList.addEventListener("dragend", () => {
+  draggedKnowledgeId = "";
+  clearDragStates(adminKnowledgeList, ".admin-card-item");
+});
+
+adminKnowledgeList.addEventListener("drop", async (event) => {
+  event.preventDefault();
+
+  const target = event.target.closest(".admin-card-item");
+  clearDragStates(adminKnowledgeList, ".admin-card-item");
+
+  if (!target || !draggedKnowledgeId || target.dataset.knowledgeId === draggedKnowledgeId) {
+    draggedKnowledgeId = "";
+    return;
+  }
+
+  const rect = target.getBoundingClientRect();
+  const placeAfter = event.clientY > rect.top + rect.height / 2;
+  const nextItems = reorderItems(siteData.knowledgeItems || [], draggedKnowledgeId, target.dataset.knowledgeId, placeAfter);
+  draggedKnowledgeId = "";
+
+  if (nextItems !== siteData.knowledgeItems) {
+    await saveKnowledgeOrder(nextItems);
+  }
+});
+
 cardModal.addEventListener("click", (event) => {
   if (event.target.closest("[data-close-card-modal]")) {
     closeCardModal();
+  }
+});
+
+knowledgeModal.addEventListener("click", (event) => {
+  if (event.target.closest("[data-close-knowledge-modal]")) {
+    closeKnowledgeModal();
   }
 });
 
@@ -857,6 +1159,9 @@ typeModal.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !cardModal.hidden) {
     closeCardModal();
+  }
+  if (event.key === "Escape" && !knowledgeModal.hidden) {
+    closeKnowledgeModal();
   }
   if (event.key === "Escape" && !typeModal.hidden) {
     closeTypeModal();
@@ -892,6 +1197,12 @@ cardForm.addEventListener("submit", (event) => {
   });
 });
 
+knowledgeForm.addEventListener("submit", (event) => {
+  handleKnowledgeSubmit(event).catch((error) => {
+    window.alert(`知识条目保存失败：${getErrorMessage(error, "请稍后再试。")}`);
+  });
+});
+
 typeForm.addEventListener("submit", (event) => {
   event.preventDefault();
   saveTypeForm().catch((error) => {
@@ -918,6 +1229,7 @@ async function init() {
   await refreshData();
   switchPage("copy");
   resetCardForm();
+  resetKnowledgeForm();
 }
 
 init();

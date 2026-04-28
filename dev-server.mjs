@@ -9,6 +9,7 @@ const API_ROUTES = new Map([
   ["/api/content", "./api/content.mjs"],
   ["/api/upload", "./api/upload.mjs"],
   ["/api/cards", "./api/cards.mjs"],
+  ["/api/knowledge-items", "./api/knowledge-items.mjs"],
   ["/api/members", "./api/members.mjs"],
   ["/api/auth/login", "./api/auth/login.mjs"],
   ["/api/auth/register", "./api/auth/register.mjs"],

@@ -25,6 +25,9 @@
       <button class="rail-dot" data-target="catalog" aria-label="跳转到应用列表">
         <span>02</span>
       </button>
+      <button class="rail-dot" data-target="knowledge" aria-label="跳转到知识共享">
+        <span>03</span>
+      </button>
     </aside>
 
     <main id="fullpage">
@@ -109,6 +112,39 @@
           <div class="catalog-footer">
             <a class="catalog-view-all" id="catalog-view-all" href="./cards.html" hidden>查看全部</a>
           </div>
+        </div>
+      </section>
+
+      <section class="panel knowledge-panel" id="knowledge" data-section="knowledge">
+        <div class="catalog-shell">
+          <header class="catalog-header">
+            <div>
+              <p class="section-tag" id="knowledge-section-tag">Knowledge Share</p>
+              <h2 id="knowledge-title">知识共享</h2>
+              <p class="catalog-description" id="knowledge-description">
+                把值得反复传播的页面、文档和方法论沉淀在这里。点击卡片即可直接进入链接。
+              </p>
+            </div>
+            <div class="catalog-meta">
+              <span class="meta-label">Visible Items</span>
+              <strong id="knowledge-visible-count">0</strong>
+            </div>
+          </header>
+
+          <div class="catalog-toolbar">
+            <div class="knowledge-hint">点击卡片后直接跳转</div>
+            <div class="catalog-actions" id="knowledge-actions">
+              <span class="catalog-user" id="knowledge-user" hidden></span>
+              <button class="catalog-add-button" id="knowledge-add-button" type="button" hidden>
+                ADD
+              </button>
+              <button class="catalog-logout-button" id="knowledge-logout-button" type="button" hidden>
+                退出
+              </button>
+            </div>
+          </div>
+
+          <div class="knowledge-grid" id="knowledge-grid" aria-live="polite"></div>
         </div>
       </section>
     </main>
@@ -254,6 +290,48 @@
           <div class="auth-actions">
             <button class="primary-action auth-submit" type="submit">提交卡片</button>
             <button class="ghost-action auth-submit" type="button" data-close-creator>取消</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div class="creator-modal" id="knowledge-creator-modal" hidden>
+      <button class="creator-modal-backdrop" type="button" aria-label="关闭上传弹窗" data-close-knowledge-creator></button>
+      <section class="creator-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="knowledge-creator-modal-title">
+        <div class="creator-modal-head">
+          <div>
+            <p class="section-tag">Add Knowledge</p>
+            <h2 id="knowledge-creator-modal-title">添加知识共享</h2>
+            <p class="creator-modal-copy">登录成员可提交页面、文章或文档链接，管理员可在后台继续整理排序。</p>
+          </div>
+          <button class="ghost-action auth-close" type="button" data-close-knowledge-creator>取消</button>
+        </div>
+
+        <form class="creator-form" id="knowledge-creator-form">
+          <div class="creator-grid">
+            <label class="creator-field creator-field-full">
+              <span>标题</span>
+              <input id="knowledge-title-input" type="text" placeholder="请输入标题" required />
+            </label>
+            <label class="creator-field creator-field-full">
+              <span>链接地址</span>
+              <input id="knowledge-url-input" type="url" placeholder="https://... 或 /items/..." required />
+            </label>
+            <label class="creator-field creator-field-full">
+              <span>简介</span>
+              <textarea id="knowledge-description-input" rows="4" placeholder="简要说明这份内容的价值"></textarea>
+            </label>
+            <label class="creator-field creator-field-full">
+              <span>标签 tags</span>
+              <input id="knowledge-tags-input" type="text" placeholder="Intent UX, Presentation, Example" />
+            </label>
+          </div>
+
+          <p class="auth-error" id="knowledge-creator-error" hidden></p>
+
+          <div class="auth-actions">
+            <button class="primary-action auth-submit" type="submit">提交内容</button>
+            <button class="ghost-action auth-submit" type="button" data-close-knowledge-creator>取消</button>
           </div>
         </form>
       </section>

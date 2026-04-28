@@ -24,6 +24,12 @@ export const DEFAULT_SITE_DATA = {
     description:
       "第二屏聚合展示我做过的 Agent、浏览器插件与 Skill。下面先放了一组可直接替换的示例卡片，你后续只需要改后台里的数据即可。",
   },
+  knowledge: {
+    sectionTag: "Knowledge Share",
+    title: "知识共享",
+    description:
+      "把值得反复传播的页面、文档和方法论沉淀在这里。点击卡片即可直接进入链接。",
+  },
   appTypes: [
     {
       id: "agent",
@@ -124,6 +130,20 @@ export const DEFAULT_SITE_DATA = {
       screenshot: "",
     },
   ],
+  knowledgeItems: [
+    {
+      id: "knowledge-intent-ux-ppt",
+      title: "意图发现 · AI UX 的下一次范式转移",
+      url: "./items/intent-ux-ppt/intent-ux-ppt.html",
+      description:
+        "以横向叙事方式呈现的示例页面，讨论 AI 时代里交互入口从功能导航转向意图理解的产品机会。",
+      tags: ["Intent UX", "Presentation", "Example"],
+      ownerUsername: "",
+      ownerRole: "",
+      createdAt: "",
+      updatedAt: "",
+    },
+  ],
 };
 
 function clone(value) {
@@ -194,6 +214,25 @@ export function normalizeCard(card, index = 0) {
   };
 }
 
+export function normalizeKnowledgeItem(item, index = 0) {
+  return {
+    id: item.id || createId(),
+    title: item.title || `未命名知识 ${index + 1}`,
+    url: item.url || "",
+    description: item.description || "",
+    tags: Array.isArray(item.tags)
+      ? item.tags.filter(Boolean)
+      : String(item.tags || "")
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+    ownerUsername: item.ownerUsername || "",
+    ownerRole: item.ownerRole || "",
+    createdAt: item.createdAt || "",
+    updatedAt: item.updatedAt || "",
+  };
+}
+
 export function normalizeAppType(type, index = 0) {
   const label = String(type?.label || "").trim() || `类型 ${index + 1}`;
   return {
@@ -224,6 +263,11 @@ export function normalizeSiteData(data) {
     ...(input.catalog || {}),
   };
 
+  merged.knowledge = {
+    ...merged.knowledge,
+    ...(input.knowledge || {}),
+  };
+
   merged.appTypes = Array.isArray(input.appTypes) && input.appTypes.length > 0
     ? input.appTypes.map((type, index) => normalizeAppType(type, index))
     : merged.appTypes.map((type, index) => normalizeAppType(type, index));
@@ -243,6 +287,10 @@ export function normalizeSiteData(data) {
           label: getAppTypeLabel(merged.appTypes, normalizedCard.type),
         };
       });
+
+  merged.knowledgeItems = Array.isArray(input.knowledgeItems) && input.knowledgeItems.length > 0
+    ? input.knowledgeItems.map((item, index) => normalizeKnowledgeItem(item, index))
+    : merged.knowledgeItems.map((item, index) => normalizeKnowledgeItem(item, index));
 
   return merged;
 }
