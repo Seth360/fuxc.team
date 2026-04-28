@@ -9,12 +9,6 @@ AI Native showcase site for Agents, browser extensions, and skills.
 - Vercel Functions 真后台
 - Vercel Blob 内容存储与截图上传
 
-## One-Click Update
-
-[![一键更新](https://img.shields.io/badge/Vercel-%E4%B8%80%E9%94%AE%E6%9B%B4%E6%96%B0-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/new/clone?repository-url=https://github.com/Seth360/fuxc.team&project-name=fuxc-team&repository-name=fuxc.team&env=ADMIN_PASSWORD,SESSION_SECRET,BLOB_READ_WRITE_TOKEN&envDescription=Admin%20password%2C%20session%20secret%2C%20and%20Vercel%20Blob%20token)
-
-说明：这个按钮会跳转到 Vercel 导入/部署流程，适合快速基于当前仓库创建或重新接入项目。
-
 ## Stack
 
 - Static HTML, CSS, JavaScript
@@ -55,17 +49,6 @@ AI Native showcase site for Agents, browser extensions, and skills.
 │       └── site-data.mjs
 └── topbg.mp4
 ```
-
-## Environment Variables
-
-Copy `.env.example` and configure the following values in Vercel:
-
-- `ADMIN_PASSWORD`
-  后台登录密码
-- `SESSION_SECRET`
-  用于签发后台登录 Cookie，建议使用长随机字符串
-- `BLOB_READ_WRITE_TOKEN`
-  Vercel Blob 读写令牌
 
 ## Deploy on Vercel
 
