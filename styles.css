@@ -350,11 +350,6 @@ button {
   flex-wrap: wrap;
 }
 
-.knowledge-hint {
-  color: var(--text-muted);
-  font-size: 0.95rem;
-}
-
 .catalog-user,
 .catalog-add-button,
 .catalog-logout-button {
