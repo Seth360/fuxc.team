@@ -410,6 +410,11 @@
   [data-anim="right"]{transform:translateX(24px)}
   [data-anim="line"]{opacity:0;transform:translateY(10px)}
   [data-animate="pipeline"] [data-anim]{opacity:.15}
+  .slide-architecture[data-animate="pipeline"] [data-anim]{opacity:.52}
+  .slide-architecture .step-title{color:rgba(var(--ink-rgb),.88)}
+  .slide-architecture .step-desc{opacity:.9;color:rgba(var(--ink-rgb),.72)}
+  .slide-architecture .callout{color:rgba(var(--ink-rgb),.72)}
+  .slide-architecture .callout-src{opacity:.72}
 
   /* ---------- 响应式降级 ---------- */
   @media (max-width:900px){
@@ -637,7 +642,7 @@
   </div>
 </section>
 
-<section class="slide light" data-animate="pipeline">
+<section class="slide light slide-architecture" data-animate="pipeline">
   <div class="chrome">
     <div>Architecture · 三层模型</div>
     <div>07 / 12</div>
