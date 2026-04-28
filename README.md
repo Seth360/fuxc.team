@@ -1,4 +1,5 @@
 # FUXC.TEAM
+项目Demo:https://fuxc.team/
 
 AI Native showcase site for Agents, browser extensions, and skills.
 
