@@ -1,0 +1,10 @@
+name = "shareagent-uxhub-api"
+main = "api-worker.js"
+compatibility_date = "2026-06-20"
+
+[[kv_namespaces]]
+binding = "UXHUB_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# Optional: set this with `wrangler secret put WRITE_TOKEN`.
+# If WRITE_TOKEN is unset, anyone who can reach the API can write data.

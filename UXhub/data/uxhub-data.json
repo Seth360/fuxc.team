@@ -1,0 +1,428 @@
+{
+  "shareagent-uxhub-cards:v1": {
+    "links": [
+      {
+        "id": "3f23e4e1-9620-4e72-ab1e-27194729c2e3",
+        "collection": "links",
+        "title": "Demo 演示页",
+        "desc": "",
+        "tags": [
+          "Demo",
+          "演示"
+        ],
+        "href": "https://ceshi112.fspage.com/h5/shareclaw/index.html"
+      },
+      {
+        "id": "16e53eff-744e-44c9-b0a8-37dbdbe9b30f",
+        "collection": "links",
+        "title": "设计稿地址",
+        "desc": "",
+        "tags": [
+          "Figma",
+          "待补"
+        ],
+        "href": "https://www.figma.com/design/ecjOFIKFqalHylEnAB5Nuy/ShareClaw?node-id=0-1&p=f&t=rriqWDhrXPq4Sqwn-11"
+      },
+      {
+        "id": "779e79a0-642f-404a-8751-a0e99ff23518",
+        "collection": "links",
+        "title": "研发每日站会",
+        "desc": "",
+        "tags": [
+          "Meeting",
+          "站会"
+        ],
+        "href": "https://365.kdocs.cn/l/cnEIPJr30YOj?openfrom=docs"
+      },
+      {
+        "id": "d871ff33-89e8-46a1-ae81-7f5b639fa430",
+        "collection": "links",
+        "title": "体验反馈",
+        "desc": "",
+        "tags": [
+          "反馈建议"
+        ],
+        "href": "https://365.kdocs.cn/l/ck3jGUVr5jUT"
+      }
+    ],
+    "rivals": [
+      {
+        "id": "88243580-7a1f-4fe9-8499-b40909501e14",
+        "collection": "rivals",
+        "title": "飞书Aily",
+        "desc": "飞书原生 AI 智能伙伴，企业智能体搭建平台",
+        "tags": [
+          "企业 Agent",
+          "办公助手"
+        ],
+        "href": "https://aily.feishu.cn/"
+      },
+      {
+        "id": "c9015688-d6a1-43b2-9ae5-e8e51cdb9dd1",
+        "collection": "rivals",
+        "title": "Workbuddy",
+        "desc": "腾讯桌面 AI 智能体，一句话完成全流程办公",
+        "tags": [
+          "办公 Agent",
+          "文档自动化",
+          "桌面智能体"
+        ],
+        "href": "https://www.codebuddy.cn/work/"
+      },
+      {
+        "id": "7298a79d-a551-40e7-b7ef-f9934039bebd",
+        "collection": "rivals",
+        "title": "Codex",
+        "desc": "OpenAI 编程智能体，自动写码调试开发项目",
+        "tags": [
+          "AI 编程",
+          "代码智能体",
+          "开发工具"
+        ],
+        "href": "https://openai.com/codex"
+      },
+      {
+        "id": "49749969-60fd-41cb-91cc-201641413e72",
+        "collection": "rivals",
+        "title": "Anthropic Cowork",
+        "desc": "Claude 桌面智能同事，自动化办公文件任务",
+        "tags": [
+          "办公Agent",
+          "桌面自动化",
+          "企业协作"
+        ],
+        "href": "https://coworker.ai"
+      },
+      {
+        "id": "15a5661a-a2a0-449c-8188-c73ab22e0595",
+        "collection": "rivals",
+        "title": "腾讯 QClaw",
+        "desc": "OpenClaw 图形化管理工具，微信远程操控电脑",
+        "tags": [
+          "OpenClaw",
+          "桌面 Agent"
+        ],
+        "href": "https://qclaw.qq.com"
+      },
+      {
+        "id": "fe73bd70-9cd1-4bce-9449-4823a2ace83f",
+        "collection": "rivals",
+        "title": "钉钉悟空",
+        "desc": "钉钉企业 AI 原生平台，自然语言自动执行工作",
+        "tags": [
+          "企业Agent",
+          "办公自动化",
+          "任务执行"
+        ],
+        "href": "https://wukong.dingtalk.com"
+      },
+      {
+        "id": "d0846b09-4a19-4381-b95b-0046b586db39",
+        "collection": "rivals",
+        "title": "Qoder",
+        "desc": "阿里智能体编程工作台，自主完成全栈开发",
+        "tags": [
+          "编程 Agent",
+          "代码开发"
+        ],
+        "href": "https://qoder.com/zh"
+      },
+      {
+        "id": "ef39ce7c-c696-427e-ae9f-846f051df71a",
+        "collection": "rivals",
+        "title": "豆包",
+        "desc": "字节全场景 AI 助手，对话创作多模态全能工具",
+        "tags": [
+          "通用 AI",
+          "多模态",
+          "办公助手"
+        ],
+        "href": "https://www.doubao.com"
+      }
+    ],
+    "members": [
+      {
+        "id": "7f9bb305-ad80-4f22-b973-30e7ee1cb68b",
+        "collection": "members",
+        "title": "石海宏",
+        "desc": "负责核心框架链路、信息架构与评审跟进。",
+        "tags": [],
+        "href": ""
+      },
+      {
+        "id": "a326b716-6d40-44c5-911f-4afa75b6d64d",
+        "collection": "members",
+        "title": "王梓轩",
+        "desc": "业务Agent、速记、侧边栏、语音模块等",
+        "tags": [],
+        "href": ""
+      },
+      {
+        "id": "a706e7cd-151a-48b6-a3c4-4c1b6140192b",
+        "collection": "members",
+        "title": "绳艳",
+        "desc": "卡片核心交互、AskUserQuestion",
+        "tags": [],
+        "href": ""
+      },
+      {
+        "id": "47777fb9-e45a-4410-8086-8fc39979fa18",
+        "collection": "members",
+        "title": "孙萌",
+        "desc": "对话输入、移动端、品牌IP",
+        "tags": [],
+        "href": ""
+      },
+      {
+        "id": "952b8f18-cc8d-409a-a8d1-35e7ce5feca6",
+        "collection": "members",
+        "title": "顾婉莹",
+        "desc": "AI后台管理",
+        "tags": [],
+        "href": ""
+      },
+      {
+        "id": "69d5da45-c084-411a-8b38-232377fff5e8",
+        "collection": "members",
+        "title": "金梅",
+        "desc": "A2UI规范、Skill",
+        "tags": [],
+        "href": ""
+      }
+    ]
+  },
+  "shareagent-uxhub-assets:v1": [
+    {
+      "id": "asset-main-design",
+      "title": "ShareAgent 主设计稿",
+      "category": "design",
+      "desc": "首页、会话、设置与核心任务流的最新设计源文件入口。",
+      "href": "#",
+      "tags": [
+        "设计文件",
+        "Figma"
+      ]
+    },
+    {
+      "id": "asset-chat-flow",
+      "title": "对话体验流程图",
+      "category": "design",
+      "desc": "沉淀用户输入、Agent 响应、异常处理和追问补全路径。",
+      "href": "#",
+      "tags": [
+        "设计文件",
+        "流程"
+      ]
+    },
+    {
+      "id": "asset-component-spec",
+      "title": "组件状态规范",
+      "category": "spec",
+      "desc": "按钮、输入框、卡片、弹层在默认、悬停、禁用和错误态下的交付口径。",
+      "href": "#",
+      "tags": [
+        "规范",
+        "组件"
+      ]
+    },
+    {
+      "id": "asset-responsive-checklist",
+      "title": "响应式验收清单",
+      "category": "spec",
+      "desc": "桌面、窄屏和移动视口下的布局断点、换行与可点击区域检查项。",
+      "href": "#",
+      "tags": [
+        "规范",
+        "验收"
+      ]
+    },
+    {
+      "id": "asset-prompt-skill",
+      "title": "ShareAgent Prompt Skill",
+      "category": "skill",
+      "desc": "用于体验评审、页面走查和交付检查的提示词与执行步骤。",
+      "href": "#",
+      "tags": [
+        "Skill",
+        "评审"
+      ]
+    },
+    {
+      "id": "asset-review-log",
+      "title": "评审纪要与决策记录",
+      "category": "doc",
+      "desc": "记录体验方案取舍、版本结论和后续动作，方便回溯项目上下文。",
+      "href": "#",
+      "tags": [
+        "其他文档",
+        "记录"
+      ]
+    }
+  ],
+  "shareagent-uxhub-planning:v1": [
+    {
+      "id": "planning-1781951269195-3bf13576ca1d48",
+      "desc": "四大页面copilot交互-基于ShareAgent与GUI联动体验升级设计",
+      "owners": [
+        "石海宏",
+        "王梓轩"
+      ],
+      "href": "",
+      "stage": "planning"
+    },
+    {
+      "id": "planning-1781951269195-6f4f7253f37a9",
+      "desc": "业务侧页面inside AI组件融合，重点SFA售前",
+      "owners": [
+        "王梓轩"
+      ],
+      "href": "",
+      "stage": "planning"
+    },
+    {
+      "id": "planning-1781951269195-642bf761a43f28",
+      "desc": "产出物多页签浏览形态交互",
+      "owners": [
+        "王梓轩"
+      ],
+      "href": "",
+      "stage": "planning"
+    },
+    {
+      "id": "planning-1781951269195-694ac4e8e38c08",
+      "desc": "【双端】对话卡片信息呈现UI、工具调用流程体验重点优化",
+      "owners": [
+        "绳艳",
+        "孙萌"
+      ],
+      "href": "",
+      "stage": "planning"
+    },
+    {
+      "id": "planning-1781951269195-c1255288270ab8",
+      "desc": "对话卡片中业务组件沉淀A2UI（Agent to UI）组件规范库，可探索基于从市面上大厂开源A2UI相关组件延展，需各业务侧共建。",
+      "owners": [
+        "石海宏",
+        "王梓轩"
+      ],
+      "href": "",
+      "stage": "planning"
+    },
+    {
+      "id": "planning-1781951269195-be8f8f356df74",
+      "desc": "IP形象情感化融合设计（欢迎页、开箱引导、入口icon）",
+      "owners": [
+        "石海宏",
+        "绳艳",
+        "孙萌"
+      ],
+      "href": "",
+      "stage": "planning"
+    }
+  ],
+  "shareagent-uxhub-report-order:v1": {
+    "zh": [
+      "home-report",
+      "report-1781944918365-c0a3f33eee5f5",
+      "report-1781945649785-7c0ceb77eec7d8",
+      "report-1781945414805-3858472844119",
+      "report-1781945801849-4dddac9b8b8828"
+    ]
+  },
+  "shareagent-uxhub-reports:v1": [
+    {
+      "id": "report-1781944918365-c0a3f33eee5f5",
+      "title": "对话页",
+      "html": "",
+      "url": "UIcheckReport/UIcheckReport2-1781944918.html",
+      "fileName": "UIcheckReport2-1781944918.html",
+      "score": "65",
+      "date": "2026-06-20",
+      "category": "zh",
+      "order": 1
+    },
+    {
+      "id": "report-1781945414805-3858472844119",
+      "title": "自动化",
+      "html": "",
+      "url": "UIcheckReport/report.html",
+      "fileName": "report.html",
+      "score": "65",
+      "date": "2026-06-20",
+      "category": "zh",
+      "order": 3
+    },
+    {
+      "id": "report-1781945649785-7c0ceb77eec7d8",
+      "title": "智能体",
+      "html": "",
+      "url": "UIcheckReport/report-1781945649.html",
+      "fileName": "report-1781945649.html",
+      "score": "65",
+      "date": "2026-06-20",
+      "category": "zh",
+      "order": 2
+    },
+    {
+      "id": "report-1781945801849-4dddac9b8b8828",
+      "title": "产物库",
+      "html": "",
+      "url": "UIcheckReport/report-1781945801.html",
+      "fileName": "report-1781945801.html",
+      "score": "72",
+      "date": "2026-06-20",
+      "category": "zh",
+      "order": 4
+    },
+    {
+      "id": "report-1781948178535-71cbfaf2100fd8",
+      "title": "首页",
+      "html": "",
+      "url": "UIcheckReport/E.html",
+      "fileName": "E.html",
+      "score": "35",
+      "date": "2026-06-20",
+      "category": "i18n"
+    },
+    {
+      "id": "report-1781948248425-f795d4a8e2d4a8",
+      "title": "自动化",
+      "html": "",
+      "url": "UIcheckReport/E-1781948248.html",
+      "fileName": "E-1781948248.html",
+      "score": "55",
+      "date": "2026-06-20",
+      "category": "i18n"
+    },
+    {
+      "id": "report-1781948347493-4f645e0f4b85b",
+      "title": "智能体",
+      "html": "",
+      "url": "UIcheckReport/E-1781948347.html",
+      "fileName": "E-1781948347.html",
+      "score": "65",
+      "date": "2026-06-20",
+      "category": "i18n"
+    },
+    {
+      "id": "report-1781948445235-9822a442fefc6",
+      "title": "产物库",
+      "html": "",
+      "url": "UIcheckReport/E-1781948445.html",
+      "fileName": "E-1781948445.html",
+      "score": "45",
+      "date": "2026-06-20",
+      "category": "i18n"
+    },
+    {
+      "id": "report-1781948644318-5299aa62aeeeb",
+      "title": "会话",
+      "html": "",
+      "url": "UIcheckReport/E-1781948644.html",
+      "fileName": "E-1781948644.html",
+      "score": "35",
+      "date": "2026-06-20",
+      "category": "i18n"
+    }
+  ]
+}

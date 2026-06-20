@@ -1,0 +1,3887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 原生 CRM 高保真交互原型 - GUI + LUI 融合</title>
+<style>
+:root {
+  --bg: #f7f8fb;
+  --ink: #172033;
+  --muted: #5f6b7c;
+  --weak: #8995a7;
+  --line: #dfe6ef;
+  --line2: #edf1f6;
+  --panel: #ffffff;
+  --panel2: #f9fbfe;
+  --nav: #101828;
+  --blue: #155eef;
+  --blue2: #eef4ff;
+  --green: #0e9f6e;
+  --green2: #e9f8f1;
+  --amber: #c26a00;
+  --amber2: #fff3df;
+  --red: #d92d20;
+  --red2: #fff0ee;
+  --violet: #7357ff;
+  --violet2: #f0edff;
+  --teal: #008a9a;
+  --shadow: 0 18px 48px rgba(16, 24, 40, .10);
+  --soft-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(154, 198, 255, .45), transparent 34%),
+    radial-gradient(circle at 78% 0%, rgba(197, 183, 255, .52), transparent 36%),
+    linear-gradient(135deg, #eaf5ff 0%, #f5f0ff 48%, #eef8fb 100%);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.45;
+  overflow: hidden;
+}
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+.app {
+  height: calc(100vh - 32px);
+  max-height: calc(100vh - 32px);
+  min-height: 0;
+  margin: 16px auto;
+  width: min(1580px, calc(100vw - 48px));
+  display: grid;
+  grid-template-columns: 54px 198px minmax(0, 1fr) 330px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.76);
+  border-radius: 28px;
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 28px 80px rgba(52, 64, 84, .18);
+  backdrop-filter: blur(18px);
+}
+.rail {
+  background: rgba(15, 23, 42, .94);
+  color: #d7deea;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 10px;
+  gap: 10px;
+}
+.mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 900;
+  background: #155eef;
+  box-shadow: none;
+  margin-bottom: 10px;
+}
+.rail-btn {
+  width: 46px;
+  min-height: 50px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #b9c3d4;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  padding: 7px 4px;
+}
+.rail-btn svg { width: 19px; height: 19px; stroke-width: 2.2; }
+.rail-btn span { font-size: 11px; font-weight: 700; }
+.rail-btn.active, .rail-btn:hover { background: #1c2941; color: #fff; }
+.rail-spacer { flex: 1; }
+.side {
+  border-right: 1px solid rgba(225, 231, 240, .7);
+  background: rgba(255,255,255,.62);
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  min-width: 0;
+}
+.side-head { padding: 20px 18px 14px; border-bottom: 1px solid rgba(237, 241, 246, .72); }
+.side-head small { color: var(--weak); font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+.side-head h1 { margin: 6px 0 0; font-size: 20px; line-height: 1.15; letter-spacing: 0; }
+.cmd {
+  margin: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.cmd svg { width: 17px; color: var(--blue); }
+.side-nav { padding: 8px 10px 12px; overflow: auto; }
+.nav-section { margin: 12px 0; }
+.nav-title { padding: 0 10px 8px; color: var(--weak); font-size: 12px; font-weight: 800; }
+.nav-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #344054;
+  text-align: left;
+  font-weight: 750;
+}
+.nav-item svg { width: 18px; color: #718096; flex: 0 0 auto; }
+.nav-item em {
+  margin-left: auto;
+  font-style: normal;
+  min-width: 22px;
+  height: 20px;
+  border-radius: 99px;
+  display: grid;
+  place-items: center;
+  background: #eef2f7;
+  color: var(--muted);
+  font-size: 11px;
+}
+.nav-item.active, .nav-item:hover { background: var(--blue2); color: #0747a6; }
+.nav-item.active svg { color: var(--blue); }
+.side-foot {
+  margin: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fbfdff, #f5f9ff);
+  padding: 12px;
+}
+.side-foot b { display: block; font-size: 13px; margin-bottom: 6px; }
+.side-foot p { margin: 0; color: var(--muted); font-size: 12px; }
+.main {
+  min-width: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: rgba(248, 250, 253, .72);
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(248, 250, 253, .78);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(223, 230, 239, .62);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.context {
+  flex: 1;
+  min-width: 0;
+}
+.crumb { color: var(--weak); font-size: 12px; font-weight: 800; }
+.page-title { margin: 2px 0 0; font-size: 22px; letter-spacing: 0; display: flex; gap: 10px; align-items: center; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.badge.blue { color: #315174; background: #f1f4f8; }
+.badge.green { color: #087051; background: #edf7f2; }
+.badge.amber { color: #9a5b05; background: #fff6e8; }
+.badge.red { color: #b42318; background: #fff1f0; }
+.badge.violet { color: #4f46a5; background: #f4f3ff; }
+.top-actions { display: flex; gap: 8px; align-items: center; }
+.top-actions .btn {
+  height: 34px;
+  min-height: 34px;
+  padding: 0 13px;
+}
+.top-actions .btn svg {
+  width: 16px;
+  height: 16px;
+}
+.btn {
+  height: 34px;
+  min-height: 34px;
+  border: 1px solid #d9e1ec;
+  background: #fff;
+  color: var(--ink);
+  border-radius: 9px;
+  padding: 7px 10px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  box-shadow: 0 1px 0 rgba(16, 24, 40, .04);
+  line-height: 1;
+  white-space: nowrap;
+}
+.btn svg { width: 17px; height: 17px; }
+.btn.primary { border-color: var(--blue); background: var(--blue); color: #fff; }
+.btn.ghost { background: transparent; box-shadow: none; }
+.btn.danger { border-color: #ffc7c2; color: var(--red); background: #fff7f6; }
+.content { padding: 18px 20px 22px; }
+.content {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
+  overscroll-behavior: contain;
+}
+.content::-webkit-scrollbar { width: 8px; }
+.content::-webkit-scrollbar-thumb {
+  background: #c6d3e4;
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.screen { display: none; }
+.screen.active {
+  display: block;
+  height: 100%;
+  min-height: 100%;
+  overflow: visible;
+}
+.grid { display: grid; gap: 14px; }
+.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cols-main { grid-template-columns: 1fr; }
+.card {
+  background: rgba(255,255,255,.86);
+  border: 1px solid rgba(227, 232, 239, .72);
+  border-radius: 18px;
+  box-shadow: var(--soft-shadow);
+  min-width: 0;
+}
+.card-head {
+  min-height: 48px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(238, 242, 246, .78);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.card h2, .card h3 { margin: 0; letter-spacing: 0; }
+.card h2 { font-size: 16px; }
+.card h3 { font-size: 15px; }
+.card-body { padding: 12px 14px 14px; }
+.muted { color: var(--muted); }
+.weak { color: var(--weak); }
+.ai-intent {
+  border: 1px solid rgba(215, 227, 248, .92);
+  border-radius: 20px;
+  background: rgba(255,255,255,.88);
+  padding: 14px;
+  margin-bottom: 12px;
+  display: grid;
+  gap: 10px;
+}
+.ai-intent-main {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.ai-intent-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #155eef, #6d5dfc);
+}
+.ai-intent-icon svg { width: 18px; }
+.ai-intent-copy b { display: block; font-size: 15px; }
+.ai-intent-copy span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.intent-input {
+  border: 1px solid #e1e8f2;
+  border-radius: 14px;
+  background: rgba(248, 251, 255, .92);
+  min-height: 40px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.intent-input svg { width: 17px; color: var(--blue); flex: 0 0 auto; }
+.intent-input input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: var(--ink);
+}
+.intent-flow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.intent-flow span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  background: #f5f7fa;
+  color: var(--muted);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 850;
+}
+.kpi {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto 1fr;
+  gap: 7px 12px;
+  align-items: end;
+  min-height: 118px;
+  position: relative;
+  overflow: hidden;
+  border: 0;
+}
+.kpi:after { display: none; }
+.kpi span { color: var(--muted); font-size: 13px; font-weight: 800; }
+.kpi strong { font-size: 26px; line-height: 1; letter-spacing: 0; grid-column: 1; }
+.kpi small { color: var(--muted); font-size: 12px; font-weight: 700; grid-column: 1 / -1; }
+.trend { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; }
+.trend.up { color: #1f7a57; }
+.trend.down { color: #b94a48; }
+.bar {
+  height: 5px;
+  border-radius: 99px;
+  background: rgba(255,255,255,.55);
+  overflow: hidden;
+  grid-column: 1 / -1;
+  align-self: end;
+}
+.bar i { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+.bar.green i { background: #58a87e; }
+.bar.amber i { background: #d7a454; }
+.bar.red i { background: #d76767; }
+#screen-dashboard .kpi:nth-child(1) { background: #fff0dc; }
+#screen-dashboard .kpi:nth-child(2) { background: #e7efff; }
+#screen-dashboard .kpi:nth-child(3) { background: #eeeaf8; }
+#screen-dashboard .kpi:nth-child(4) { background: #e7f5ee; }
+.funnel {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  align-items: end;
+  height: 190px;
+}
+.stage {
+  border: 1px solid #e7ecf3;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  align-content: end;
+  gap: 8px;
+  min-height: 92px;
+  position: relative;
+}
+.stage.hot { border-color: #f4d3a4; background: #fffaf2; }
+.stage-fill {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 54px;
+  border-radius: 8px 8px 4px 4px;
+  background: linear-gradient(180deg, #6da2ff, #1769ff);
+  opacity: .9;
+}
+.stage.hot .stage-fill { background: linear-gradient(180deg, #ffc46b, #f79009); }
+.stage b, .stage span { position: relative; z-index: 1; }
+.stage b { font-size: 13px; }
+.stage span { color: var(--muted); font-size: 12px; }
+.timeline { display: grid; gap: 10px; }
+.compact-actions {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #eef2f6;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.event {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+.dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--blue2);
+  color: var(--blue);
+}
+.dot svg { width: 16px; }
+.event b { display: block; font-size: 13px; }
+.event p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.event time { color: var(--weak); font-size: 12px; font-weight: 800; white-space: nowrap; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  color: var(--weak);
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1px solid #e9eef5;
+  background: #fafbfd;
+  font-size: 12px;
+  font-weight: 900;
+}
+td {
+  padding: 10px 10px;
+  border-bottom: 1px solid #eef2f6;
+  vertical-align: middle;
+}
+td .btn,
+td .badge,
+td .ai-attribute,
+td .task-priority,
+td .task-ai-source {
+  height: 30px;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+td .btn {
+  min-width: 78px;
+  padding: 0 12px;
+}
+tr:last-child td { border-bottom: 0; }
+tr.selected, tr:hover { background: #f8fbff; }
+.name { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #eaf2ff;
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  flex: 0 0 auto;
+}
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: #f3f6fa;
+  border-radius: 12px;
+}
+.tab {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 7px 10px;
+  border-radius: 9px;
+  font-weight: 850;
+  font-size: 13px;
+}
+.tab.active { background: #fff; color: var(--blue); box-shadow: none; }
+.subview { display: none; }
+.subview.active { display: block; }
+.ai-attribute {
+  border: 1px solid #d8d1ff;
+  color: #5331c9;
+  background: var(--violet2);
+  border-radius: 8px;
+  padding: 5px 7px;
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font-weight: 850;
+}
+.ai-attribute svg { width: 13px; }
+.profile {
+  display: grid;
+  grid-template-columns: minmax(330px, .92fr) minmax(0, 1.35fr);
+  gap: 14px;
+  align-items: stretch;
+}
+.profile-card {
+  border: 1px solid #e5ebf3;
+  border-radius: 16px;
+  background: #fff;
+  padding: 14px;
+  text-align: left;
+  box-shadow: 0 10px 24px rgba(16, 24, 40, .05);
+}
+.profile-card.compact { box-shadow: none; border-radius: 14px; }
+.customer-hero {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.profile-logo {
+  width: 58px;
+  height: 58px;
+  margin: 0;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #155eef, #00a5a8);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 900;
+}
+.profile-card h3 { margin: 0 0 5px; font-size: 18px; letter-spacing: 0; }
+.profile-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.customer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.customer-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line2);
+}
+.customer-field span {
+  display: block;
+  color: var(--weak);
+  font-size: 11px;
+  font-weight: 900;
+}
+.customer-field b {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.metric-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.metric-mini {
+  border: 1px solid #eef2f6;
+  border-radius: 12px;
+  padding: 10px;
+  background: #fff;
+}
+.metric-mini span { display: block; color: var(--weak); font-size: 12px; font-weight: 800; }
+.metric-mini b { display: block; margin-top: 4px; font-size: 16px; }
+.diagnosis-panel {
+  border: 1px solid #d9e6f8;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(247,250,255,.92));
+  padding: 14px;
+  box-shadow: 0 12px 28px rgba(21, 94, 239, .07);
+}
+.diagnosis-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.diagnosis-title b { font-size: 14px; }
+.diagnosis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.diagnosis-score {
+  border: 1px solid #e6edf7;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px;
+}
+.diagnosis-score span {
+  display: block;
+  color: var(--weak);
+  font-size: 11px;
+  font-weight: 900;
+}
+.diagnosis-score strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+}
+.diagnosis-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 128px;
+  gap: 10px;
+  margin-top: 10px;
+}
+.diagnosis-text {
+  border: 1px solid #e6edf7;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.diagnosis-actions {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.relation-map {
+  min-height: 230px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    linear-gradient(#f7f9fc 1px, transparent 1px),
+    linear-gradient(90deg, #f7f9fc 1px, transparent 1px),
+    #fff;
+  background-size: 24px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.node {
+  position: absolute;
+  min-width: 96px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+  padding: 9px 10px;
+  text-align: center;
+}
+.node b { display: block; font-size: 13px; }
+.node span { color: var(--weak); font-size: 11px; }
+.node.key { border-color: #b9d0ff; background: #f8fbff; }
+.edge {
+  position: absolute;
+  height: 2px;
+  background: #cbd5e1;
+  transform-origin: left center;
+}
+.pipeline {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 286px;
+  grid-template-columns: none;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+  min-width: 0;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+}
+.pipeline::-webkit-scrollbar { height: 8px; }
+.pipeline::-webkit-scrollbar-thumb {
+  background: #c6d3e4;
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.lane {
+  border: 1px solid #e6ebf2;
+  border-radius: 10px;
+  background: #fafbfd;
+  min-height: 310px;
+  padding: 10px;
+  scroll-snap-align: start;
+}
+.lane-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+.deal {
+  border: 1px solid #e1e9f4;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  box-shadow: 0 8px 18px rgba(16, 24, 40, .055);
+  margin-bottom: 8px;
+}
+.deal b { display: block; font-size: 13px; line-height: 1.25; }
+.deal small { display: block; color: var(--muted); margin: 4px 0 8px; line-height: 1.35; }
+.deal-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 8px 0;
+}
+.deal-meta span {
+  border-left: 1px solid #e8edf4;
+  padding-left: 6px;
+  color: var(--weak);
+  font-size: 10px;
+  font-weight: 900;
+}
+.deal-meta strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink);
+  font-size: 11px;
+}
+.deal-ai {
+  border: 1px solid #edf2fb;
+  border-radius: 10px;
+  background: #f8fbff;
+  padding: 7px 8px;
+  margin-top: 8px;
+}
+.deal-ai .ai-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 900;
+  margin-bottom: 5px;
+}
+.ai-tag.red { color: #b42318; background: #fff1f0; }
+.ai-tag.amber { color: #9a5b05; background: #fff6e8; }
+.ai-tag.blue { color: #315174; background: #edf5ff; }
+.ai-tag.green { color: #087051; background: #edf7f2; }
+.deal-ai p {
+  margin: 0;
+  color: #475467;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.deal-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 9px;
+}
+.deal-next span {
+  min-width: 0;
+  color: var(--weak);
+  font-size: 10px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.deal-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-chip {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+.filter-chip.ai { border-color: #c7d9ff; background: var(--blue2); color: #0747a6; }
+.missing-filter {
+  border: 1px solid rgba(215, 225, 238, .92);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,251,255,.92));
+  padding: 10px;
+  margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: 1.1fr .9fr .75fr minmax(190px, 1.4fr) auto;
+  gap: 8px;
+  align-items: end;
+  min-width: 0;
+}
+.filter-field {
+  min-width: 0;
+}
+.filter-field label {
+  display: block;
+  color: var(--weak);
+  font-size: 11px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.filter-field input,
+.filter-field select {
+  width: 100%;
+  min-width: 0;
+  height: 31px;
+  border: 1px solid #dfe6ef;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  padding: 6px 9px;
+  outline: none;
+  font-size: 12px;
+  font-weight: 750;
+}
+.filter-field input:focus,
+.filter-field select:focus {
+  border-color: #9fc0ff;
+  box-shadow: 0 0 0 3px rgba(21, 94, 239, .10);
+}
+.missing-filter .btn {
+  height: 31px;
+  min-height: 31px;
+  white-space: nowrap;
+}
+.list-query {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 9px;
+}
+.list-query input {
+  width: 100%;
+  height: 34px;
+  border: 1px solid #dfe6ef;
+  border-radius: 11px;
+  background: #fff;
+  padding: 7px 11px;
+  outline: none;
+  font-size: 13px;
+  font-weight: 750;
+}
+.list-query .btn {
+  height: 34px;
+  min-height: 34px;
+  min-width: 96px;
+  padding: 0 14px;
+}
+.condition-strip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 9px;
+}
+.condition-strip .label {
+  color: var(--weak);
+  font-size: 11px;
+  font-weight: 900;
+}
+.list-action-bar {
+  border: 1px solid rgba(225, 231, 240, .86);
+  border-radius: 14px;
+  background: rgba(255,255,255,.86);
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+.list-action-summary {
+  min-width: 0;
+}
+.list-action-summary b {
+  display: block;
+  font-size: 13px;
+}
+.list-action-summary span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.list-action-bar .field {
+  min-width: 180px;
+}
+.list-action-bar .field input {
+  height: 30px;
+  padding: 6px 9px;
+  font-size: 12px;
+}
+#screen-list.screen.active {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+#screen-contacts.screen.active {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+#screen-list > .grid {
+  margin-top: 0 !important;
+  min-height: 0;
+}
+#screen-list > .card,
+#screen-contacts > .card {
+  min-height: 0;
+  overflow: hidden;
+}
+#screen-list > .card > .card-body,
+#screen-contacts > .card > .card-body {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  overflow: hidden;
+}
+#screen-list .list-table-wrap,
+#screen-contacts .list-table-wrap {
+  min-height: 0;
+  overflow: hidden;
+}
+#screen-list table,
+#screen-contacts table {
+  min-height: 0;
+}
+#screen-list th,
+#screen-list td,
+#screen-contacts th,
+#screen-contacts td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+#screen-list td:last-child,
+#screen-contacts td:last-child {
+  text-align: center;
+}
+#screen-list td:last-child .btn,
+#screen-contacts td:last-child .btn {
+  width: 78px;
+  min-width: 78px;
+}
+#screen-record.screen.active {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 12px;
+}
+.record-filter-bar {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.record-filter-bar .filter-chip {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+}
+.record-search {
+  height: 34px;
+  border: 1px solid #dfe6ef;
+  border-radius: 11px;
+  background: #fff;
+  padding: 7px 11px;
+  outline: none;
+  min-width: 0;
+  font-weight: 750;
+}
+.record-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.record-kpi {
+  border: 1px solid rgba(223, 230, 239, .9);
+  border-radius: 14px;
+  background: rgba(255,255,255,.86);
+  padding: 12px 14px;
+}
+.record-kpi strong { display:block; font-size: 20px; }
+.record-kpi span { display:block; margin-top: 4px; color: var(--muted); font-weight: 750; }
+.record-kpi.warn { background: #fffaf0; border-color: #fde3a7; }
+.record-workbench {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, .88fr);
+  gap: 12px;
+}
+.record-list,
+.record-draft-panel {
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(223, 230, 239, .9);
+  border-radius: 16px;
+  background: rgba(255,255,255,.86);
+}
+.record-list {
+  padding: 10px;
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.sales-record-item {
+  border: 1px solid #edf1f6;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 10px;
+}
+.record-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 99px;
+  background: var(--blue);
+  margin-top: 6px;
+}
+.record-dot.green { background: var(--green); }
+.record-dot.amber { background: var(--amber); }
+.sales-record-item h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.sales-record-item p {
+  margin: 5px 0 7px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.record-meta {
+  color: var(--weak);
+  font-size: 12px;
+  font-weight: 750;
+}
+.ai-extract-pill {
+  display: inline-flex;
+  margin-top: 8px;
+  border: 1px solid #cfe0ff;
+  border-radius: 8px;
+  background: #f3f7ff;
+  color: var(--blue);
+  padding: 5px 8px;
+  font-weight: 850;
+  font-size: 12px;
+}
+.record-draft-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.record-draft-head {
+  padding: 11px 12px;
+  border-bottom: 1px solid #edf1f6;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 10px;
+}
+.record-draft-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 12px;
+}
+.record-draft-actions {
+  border-top: 1px solid #edf1f6;
+  padding: 10px 12px;
+  display:flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.field label {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+.field input, .field textarea, .field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 11px;
+  color: var(--ink);
+  outline: none;
+}
+.field textarea { min-height: 92px; resize: vertical; }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: #9fc0ff; box-shadow: 0 0 0 3px rgba(23, 105, 255, .12); }
+.confidence {
+  color: var(--green);
+  background: var(--green2);
+  border-radius: 999px;
+  padding: 2px 6px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.confidence.warn { color: var(--amber); background: var(--amber2); }
+.confidence.check { color: var(--blue); background: var(--blue2); }
+.record-box {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+.record-raw {
+  background: #f8fafc;
+  padding: 14px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line2);
+}
+.extract-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 14px;
+}
+.extract {
+  border: 1px solid var(--line2);
+  border-radius: 12px;
+  padding: 10px;
+}
+.extract span { color: var(--weak); display: block; font-size: 12px; font-weight: 900; }
+.extract b { display: block; margin-top: 5px; }
+.chart {
+  min-height: 260px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(23,105,255,.06), transparent 60%),
+    #fff;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  gap: 8px;
+}
+.axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: var(--weak);
+  font-size: 11px;
+  text-align: right;
+}
+.plot {
+  position: relative;
+  border-left: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  min-height: 220px;
+  background:
+    linear-gradient(#eef2f7 1px, transparent 1px);
+  background-size: 100% 44px;
+}
+.polyline {
+  position: absolute;
+  inset: 10px 12px 14px 12px;
+}
+.polyline svg { width: 100%; height: 100%; overflow: visible; }
+.risk-list { display: grid; gap: 9px; }
+.risk {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  border: 1px solid #e8edf4;
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: #fff;
+}
+.risk b { display: block; font-size: 13px; }
+.risk p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.mobile-shell {
+  width: 330px;
+  margin: 0 auto;
+  border: 8px solid #1c2536;
+  border-radius: 34px;
+  background: #fff;
+  min-height: 690px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.mobile-top {
+  height: 54px;
+  background: #101828;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 900;
+}
+.mobile-content { padding: 12px; background: #f6f8fb; min-height: 560px; }
+.bottom-sheet {
+  background: #fff;
+  border-top: 1px solid var(--line);
+  border-radius: 18px 18px 0 0;
+  padding: 14px;
+  box-shadow: 0 -10px 28px rgba(16, 24, 40, .12);
+}
+.sheet-handle {
+  width: 42px;
+  height: 4px;
+  border-radius: 99px;
+  background: #cbd5e1;
+  margin: 0 auto 12px;
+}
+.studio-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr 310px;
+  gap: 14px;
+}
+.step-list { display: grid; gap: 9px; }
+.step {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.step i {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: var(--green2);
+  color: var(--green);
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-weight: 900;
+}
+.step.pending i { background: var(--amber2); color: var(--amber); }
+.action-row {
+  border: 1px solid #e8edf4;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--blue);
+  background: var(--blue2);
+  border-radius: 6px;
+}
+.ai-panel {
+  border-left: 1px solid rgba(223, 230, 239, .72);
+  background: rgba(255,255,255,.68);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  height: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.ai-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(223,230,239,.72);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 0;
+}
+.ai-title { display: flex; align-items: center; gap: 10px; font-weight: 900; }
+.ai-title > div:last-child { min-width: 0; }
+.ai-title > div:last-child > div,
+.ai-title small {
+  display: block;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-orb {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1769ff, #00a5a8);
+  color: #fff;
+}
+.ai-orb svg { width: 18px; }
+.ai-context {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line2);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  min-width: 0;
+  min-height: 0;
+}
+.ctx-pill {
+  border: 0;
+  border-left: 2px solid #d7e3f8;
+  border-radius: 0;
+  background: rgba(255,255,255,.74);
+  padding: 4px 6px;
+  min-width: 0;
+}
+.ctx-pill span { color: var(--weak); display: block; font-size: 10px; font-weight: 900; }
+.ctx-pill b {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-feed {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px;
+  padding-bottom: 18px;
+  display: block;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  position: relative;
+  pointer-events: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-padding-bottom: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: #c6d3e4 transparent;
+}
+.ai-feed::after {
+  content: "";
+  position: sticky;
+  bottom: -18px;
+  display: block;
+  height: 12px;
+  margin-top: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.92));
+  pointer-events: none;
+}
+.ai-feed > * + * { margin-top: 10px; }
+.ai-feed::-webkit-scrollbar { width: 8px; }
+.ai-feed::-webkit-scrollbar-thumb {
+  background: #c6d3e4;
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.bubble {
+  max-width: 88%;
+  min-width: 0;
+  border: 1px solid #e5ebf3;
+  border-radius: 12px;
+  background: rgba(255,255,255,.88);
+  padding: 10px 11px;
+  color: var(--ink);
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, .04);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.bubble.user {
+  margin-left: auto;
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.artifact,
+.plan-card {
+  border: 1px solid rgba(211, 224, 242, .92);
+  background: rgba(255,255,255,.94);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(16, 24, 40, .045);
+  width: 90%;
+  margin-left: 10px;
+  min-width: 0;
+}
+.artifact-head,
+.plan-head {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.artifact-head b,
+.plan-head b {
+  min-width: 0;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.artifact-body { padding: 9px 10px; display: grid; gap: 7px; }
+.artifact-row,
+.plan-step,
+.plan-prob {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  font-size: 11px;
+  min-width: 0;
+}
+.artifact-row span,
+.plan-step span:first-child,
+.plan-prob span:first-child {
+  color: var(--weak);
+  font-weight: 850;
+}
+.artifact-row b,
+.plan-step strong {
+  min-width: 0;
+  font-weight: 850;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.artifact-row > :last-child,
+.plan-step > :last-child,
+.plan-prob > :last-child {
+  grid-column: auto;
+  justify-self: end;
+}
+.artifact-row > .badge,
+.artifact-row > button,
+.plan-step > .priority-pill {
+  margin-top: 0;
+  white-space: nowrap;
+}
+.artifact-row > .badge {
+  padding: 3px 7px;
+  font-size: 10px;
+}
+.artifact-row .btn {
+  min-height: 25px;
+  padding: 3px 7px;
+  font-size: 10px;
+  border-radius: 7px;
+}
+.plan-step {
+  padding: 8px 10px;
+  border-bottom: 1px solid #edf3ff;
+}
+.priority-pill {
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.priority-pill.high { color: #c56a00; background: #fff1bd; }
+.priority-pill.mid { color: var(--blue); background: #e8f1ff; }
+.plan-prob {
+  padding: 8px 10px;
+  border-bottom: 1px solid #edf3ff;
+}
+.plan-bar {
+  height: 6px;
+  border-radius: 99px;
+  background: #e3eaf3;
+  overflow: hidden;
+}
+.plan-bar i {
+  display:block;
+  height:100%;
+  border-radius: inherit;
+  background: var(--green);
+}
+.plan-actions {
+  display:flex;
+  gap: 8px;
+  padding: 10px;
+}
+.plan-actions .btn.primary {
+  min-width: 104px;
+}
+.ai-compose {
+  border-top: 1px solid var(--line);
+  padding: 12px;
+  background: #fff;
+  min-width: 0;
+  min-height: 0;
+}
+.quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 9px;
+}
+.quick button {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.input-row { display: flex; gap: 8px; }
+.input-row input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 11px;
+  outline: none;
+}
+.input-row .btn {
+  flex: 0 0 auto;
+  min-width: 58px;
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(80px);
+  opacity: 0;
+  z-index: 90;
+  background: #101828;
+  color: #fff;
+  padding: 11px 14px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: .22s ease;
+  font-weight: 800;
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, .36);
+  display: none;
+  place-items: center;
+  z-index: 80;
+}
+.modal-mask.show { display: grid; }
+.modal {
+  width: min(620px, calc(100vw - 32px));
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.modal-body { padding: 16px; }
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line2);
+  background: var(--panel2);
+}
+.command-palette {
+  position: fixed;
+  top: 88px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px);
+  width: min(720px, calc(100vw - 40px));
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  z-index: 85;
+  display: none;
+  overflow: hidden;
+}
+.command-palette.show { display: block; }
+.command-palette input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line2);
+  padding: 16px;
+  outline: none;
+  font-size: 16px;
+}
+.command-results { padding: 10px; display: grid; gap: 7px; }
+.command-item {
+  border: 0;
+  background: #fff;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  padding: 10px;
+}
+.command-item:hover { background: var(--blue2); }
+.command-item svg { width: 18px; color: var(--blue); }
+.command-item b { display: block; }
+.command-item span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+@media (max-width: 1320px) {
+  .app {
+    width: min(100vw - 24px, 1580px);
+    grid-template-columns: 50px 174px minmax(0, 1fr) 318px;
+  }
+  .ai-panel { grid-column: auto; min-height: 0; border-left: 1px solid rgba(223, 230, 239, .72); border-top: 0; }
+}
+@media (max-width: 920px) {
+  .app { grid-template-columns: 1fr; }
+  .rail, .side { display: none; }
+  .topbar { position: static; flex-direction: column; align-items: stretch; }
+  .page-title { font-size: 20px; line-height: 1.25; word-break: keep-all; }
+  .top-actions { width: 100%; overflow-x: auto; padding-bottom: 2px; }
+  .top-actions .btn { flex: 0 0 auto; }
+  .content { padding: 12px; }
+  .cols-2, .cols-3, .cols-4, .cols-main, .profile, .studio-layout { grid-template-columns: 1fr; }
+  .content .cols-4 { grid-template-columns: 1fr; }
+  .pipeline { grid-template-columns: none; grid-auto-columns: minmax(260px, 82vw); }
+  .ai-panel {
+    grid-column: auto;
+    height: 520px;
+    max-height: 520px;
+    min-height: 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* Keep the center CRM workspace as a single, calm work surface inside the overall three-column app. */
+.content .cols-main,
+.content .cols-2,
+.content .cols-3 {
+  grid-template-columns: 1fr;
+}
+.content .cols-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.content .card {
+  box-shadow: none;
+}
+.content .card + .card,
+.content .grid + .card,
+.content .card + .grid {
+  margin-top: 12px;
+}
+.deal-focus {
+  display: grid;
+  gap: 22px;
+}
+.stage-strip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(218, 224, 232, .9);
+  border-radius: 18px;
+  background: rgba(255,255,255,.82);
+}
+.stage-step {
+  border: 0;
+  color: inherit;
+  font: inherit;
+  min-height: 104px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  border-right: 1px solid #e7ebf1;
+  background: transparent;
+  cursor: pointer;
+  transition: background .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.stage-step:last-child { border-right: 0; }
+.stage-step:hover { background: #f6f9ff; box-shadow: inset 0 -3px 0 rgba(21, 94, 239, .22); }
+.stage-step.done { background: #eafaf3; }
+.stage-step.active { background: #dcecff; }
+.stage-step:focus-visible { outline: 3px solid rgba(21, 94, 239, .24); outline-offset: -3px; }
+.stage-no {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: #7c8795;
+  background: #eef1f5;
+}
+.stage-step.done .stage-no { background: #15b978; color: #fff; }
+.stage-step.active .stage-no { background: #2467e8; color: #fff; }
+.stage-cn { font-weight: 900; font-size: 15px; }
+.stage-en { color: #7a746d; font-size: 13px; }
+.work-surface {
+  display: grid;
+  grid-template-columns: minmax(0, 1.48fr) minmax(320px, .95fr);
+  gap: 20px;
+  align-items: start;
+}
+.deal-left {
+  border-radius: 20px;
+  background: #f3f6fc;
+  padding: 20px;
+}
+.progress-line {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: center;
+  margin: 0 0 22px;
+}
+.progress-line span {
+  height: 3px;
+  background: #dbe3ef;
+  position: relative;
+}
+.progress-line span:before {
+  content: "";
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #dbe3ef;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.progress-line .on { background: #2a63e8; }
+.progress-line .on:before { background: #2a63e8; box-shadow: 0 0 0 4px #eef4ff; }
+.deal-card {
+  background: #fff;
+  border: 1px solid #dce4ef;
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.deal-card + .deal-card { margin-top: 16px; }
+.deal-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.deal-summary h2 { margin: 0 0 8px; font-size: 18px; }
+.deal-summary p { margin: 0; color: #756f69; }
+.deal-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #edf1f6;
+}
+.deal-info-item {
+  min-width: 0;
+}
+.deal-info-item span {
+  display: block;
+  color: var(--weak);
+  font-size: 11px;
+  font-weight: 900;
+}
+.deal-info-item b {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.soft-pill {
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #fff1e3;
+  color: #d15a10;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 17px;
+  font-weight: 900;
+}
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.compare-card {
+  border: 1px solid #e1d1ff;
+  border-radius: 12px;
+  min-height: 82px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+}
+.compare-card strong { font-size: 18px; color: #7339d1; }
+.compare-card span { color: #168b5c; font-size: 13px; }
+.compare-card.warn { border-color: #ffc996; background: #fffaf6; }
+.compare-card.warn strong { color: #e65914; }
+.compare-card.warn span { color: #e65914; }
+.compare-card.good { border-color: #a9dfc3; background: #f7fffb; }
+.compare-card.good strong { color: #08794f; }
+.suggest-table {
+  display: grid;
+  gap: 0;
+}
+.suggest-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid #edf0f4;
+}
+.suggest-row:last-child { border-bottom: 0; }
+.suggest-row span { color: #8a837d; }
+.suggest-row strong { text-align: right; }
+.suggest-row.warning strong { color: #f06018; }
+.auto-panel {
+  border: 1px solid #cdb8ff;
+  border-radius: 18px;
+  background: rgba(255,255,255,.84);
+  padding: 24px;
+  box-shadow: 0 16px 44px rgba(82, 53, 158, .08);
+}
+.auto-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: #6b2ecb;
+  margin-bottom: 18px;
+}
+.trigger {
+  display: inline-flex;
+  border-radius: 999px;
+  background: #efe5ff;
+  color: #6b2ecb;
+  padding: 8px 12px;
+  font-weight: 900;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+.auto-panel p { color: #656f80; margin: 0 0 16px; }
+.auto-task {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #e3d8ff;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 10px;
+  background: rgba(255,255,255,.72);
+}
+.task-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #f1eaff;
+}
+.auto-task strong { display: block; }
+.auto-task span { display: block; color: #7b7480; font-size: 13px; margin-top: 2px; }
+.auto-task.empty {
+  border-style: dashed;
+  background: rgba(248, 250, 253, .72);
+}
+
+/* High-density polish */
+body { font-size: 13px; }
+.app { min-height: 0; }
+.side-head h1 { font-size: 17px; }
+.side-head small, .nav-title, .crumb, .badge, .event time, .stage-en { font-size: 11px; }
+.nav-item { padding: 8px 9px; font-size: 13px; }
+.nav-item svg { width: 16px; }
+.cmd { margin: 12px; padding: 8px 10px; font-size: 12px; }
+.topbar { padding: 11px 16px; }
+.page-title { font-size: 18px; }
+.content { padding: 14px 16px 18px; }
+.card-head { min-height: 42px; padding: 10px 12px; }
+.card h2 { font-size: 14px; }
+.card-body { padding: 10px 12px 12px; }
+.btn { height: 30px; min-height: 30px; padding: 0 9px; font-size: 12px; border-radius: 8px; }
+.stage-strip { border-radius: 14px; }
+.stage-step { min-height: 82px; gap: 5px; }
+.stage-no { width: 25px; height: 25px; font-size: 13px; }
+.stage-cn { font-size: 13px; }
+.work-surface { grid-template-columns: minmax(0, 1.42fr) minmax(300px, .82fr); gap: 16px; }
+.deal-left { padding: 16px; border-radius: 16px; }
+.deal-card { padding: 14px 16px; border-radius: 12px; }
+.deal-card + .deal-card { margin-top: 12px; }
+.deal-summary h2 { font-size: 15px; }
+.deal-summary p, .auto-panel p, .suggest-row span, .auto-task span { font-size: 12px; }
+.deal-info-grid { margin-top: 10px; padding-top: 9px; gap: 7px 10px; }
+.deal-info-item span { font-size: 10px; }
+.deal-info-item b { font-size: 11px; }
+.section-title { font-size: 14px; margin-bottom: 10px; }
+.compare-card { min-height: 66px; }
+.compare-card strong { font-size: 15px; }
+.compare-card span { font-size: 12px; }
+.suggest-row { grid-template-columns: 108px 1fr; padding: 10px 0; }
+.suggest-row strong { font-size: 13px; }
+.auto-panel { padding: 18px; border-radius: 16px; }
+.auto-title { font-size: 15px; margin-bottom: 12px; }
+.trigger { padding: 6px 10px; font-size: 12px; margin-bottom: 12px; }
+.auto-task { padding: 9px 10px; margin-top: 8px; grid-template-columns: 30px 1fr; }
+.task-icon { width: 26px; height: 26px; border-radius: 8px; }
+.lane { min-height: 300px; }
+.deal { padding: 8px; }
+.deal small { margin: 3px 0 6px; }
+.deal-meta { gap: 4px; margin: 6px 0; }
+.deal-meta span { font-size: 9px; padding-left: 5px; }
+.deal-meta strong { font-size: 10px; }
+.deal-ai { padding: 6px 7px; margin-top: 6px; }
+.deal-ai p { font-size: 10px; }
+.deal-ai .ai-tag { font-size: 9px; margin-bottom: 4px; }
+.deal-next { margin-top: 7px; gap: 6px; }
+.deal-next span { font-size: 9px; }
+.missing-filter {
+  grid-template-columns: 1fr 1fr .78fr minmax(160px, 1.35fr) auto;
+  padding: 8px;
+  gap: 7px;
+}
+.filter-field label { font-size: 10px; margin-bottom: 3px; }
+.filter-field input,
+.filter-field select,
+.missing-filter .btn {
+  height: 29px;
+  min-height: 29px;
+  font-size: 11px;
+}
+.list-query .btn,
+.top-actions .btn {
+  height: 34px;
+  min-height: 34px;
+}
+td .btn,
+td .badge,
+td .ai-attribute,
+td .task-priority,
+td .task-ai-source {
+  height: 28px;
+  min-height: 28px;
+}
+td .btn {
+  min-width: 76px;
+  padding: 0 10px;
+}
+.ai-head { padding: 11px 12px; }
+.ai-title { font-size: 13px; }
+.ai-orb { width: 28px; height: 28px; border-radius: 9px; }
+.ai-context { padding: 7px 9px; gap: 5px; }
+.ctx-pill span { font-size: 9px; }
+.ctx-pill b { font-size: 10px; }
+.ai-feed { padding: 11px; }
+.ai-feed > * + * { margin-top: 8px; }
+.bubble { font-size: 12px; padding: 8px 9px; border-radius: 11px; }
+.artifact,
+.plan-card { width: 90%; margin-left: 10px; }
+.artifact-head { padding: 7px 9px; }
+.artifact-body { padding: 8px 9px; gap: 6px; }
+.artifact-row { grid-template-columns: 46px minmax(0, 1fr) auto; font-size: 10px; }
+.plan-head { padding: 9px 10px 8px; }
+.plan-step { padding: 7px 10px; }
+.plan-prob { padding: 7px 10px; }
+.plan-actions { padding: 9px 10px 10px; }
+.ai-compose { padding: 10px; }
+.quick button { padding: 5px 8px; font-size: 11px; }
+.input-row input { padding: 8px 9px; font-size: 12px; }
+.main, .content, .deal-focus, .work-surface, .grid.cols-main, .studio-layout {
+  min-height: 0;
+}
+.deal-focus {
+  height: 100%;
+  grid-template-rows: auto 1fr;
+}
+.work-surface {
+  min-height: 0;
+  overflow: hidden;
+}
+.deal-left,
+.auto-panel,
+.pipeline,
+.card {
+  min-height: 0;
+}
+.deal-left {
+  overflow: hidden;
+}
+.auto-panel {
+  overflow: hidden;
+}
+.pipeline {
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.table-wrap,
+.record-box,
+.chart,
+.relation-map {
+  max-height: 100%;
+}
+.screen.active > .deal-focus,
+.screen.active > .ai-task-page,
+#screen-list > .card,
+#screen-contacts > .card,
+#screen-record > .record-workbench,
+#screen-ai-tasks > .task-board {
+  max-height: 100%;
+}
+.ai-task-page {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  min-height: 0;
+}
+.task-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.task-summary-card {
+  border: 1px solid rgba(227,232,239,.75);
+  border-radius: 14px;
+  background: rgba(255,255,255,.82);
+  padding: 12px;
+}
+.task-summary-card span { display:block; color: var(--muted); font-size: 11px; font-weight: 800; }
+.task-summary-card strong { display:block; margin-top: 5px; font-size: 22px; }
+.task-workbench {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, .85fr);
+  gap: 12px;
+}
+.task-list-panel,
+.task-audit-panel {
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(227,232,239,.75);
+  border-radius: 16px;
+  background: rgba(255,255,255,.84);
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+.task-list-panel { grid-template-rows: auto 1fr; }
+.task-panel-head {
+  padding: 11px 12px;
+  border-bottom: 1px solid #edf1f6;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 10px;
+}
+.task-panel-head h2 { margin:0; font-size:14px; }
+.task-table-wrap {
+  min-height: 0;
+  overflow: hidden;
+}
+.task-ledger {
+  min-height: 0;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.task-ledger-item {
+  border: 1px solid #edf1f6;
+  border-radius: 10px;
+  background: rgba(255,255,255,.78);
+  padding: 7px 8px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+  align-items: center;
+}
+.task-ledger-item b { font-size: 11px; line-height: 1.25; }
+.task-ledger-item small { color: var(--muted); font-size: 10px; line-height: 1.2; }
+.task-board {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 12px;
+  overflow: hidden;
+}
+#screen-ai-tasks.screen.active {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.task-filter-bar {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.task-filter-bar .filter-chip {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+}
+.task-search {
+  height: 34px;
+  border: 1px solid #dfe6ef;
+  border-radius: 11px;
+  background: #fff;
+  padding: 7px 11px;
+  outline: none;
+  min-width: 0;
+  font-weight: 750;
+}
+.task-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.task-kpi {
+  border: 1px solid rgba(223, 230, 239, .9);
+  border-radius: 14px;
+  background: rgba(255,255,255,.86);
+  padding: 12px 14px;
+}
+.task-kpi strong { display:block; font-size: 20px; }
+.task-kpi span { display:block; margin-top: 4px; color: var(--muted); font-weight: 750; }
+.task-kpi.warn { background: #fffaf0; border-color: #fde3a7; }
+.task-kpi.good strong { color: var(--green); }
+.task-board-card {
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(223, 230, 239, .9);
+  border-radius: 16px;
+  background: rgba(255,255,255,.88);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.task-main-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, .72fr);
+  gap: 12px;
+}
+.task-board-head {
+  padding: 12px 14px;
+  border-bottom: 1px solid #edf1f6;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.task-board-head h2 { margin:0; font-size:16px; }
+.task-table {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.task-table table { height: auto; min-width: 760px; }
+.task-table tr.overdue { background: #fff9e8; }
+.task-table td:first-child,
+.task-table th:first-child {
+  width: 46px;
+  text-align: center;
+}
+.task-table td:nth-child(2) {
+  min-width: 220px;
+}
+.task-priority {
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-weight: 900;
+  display: inline-flex;
+  background: #fff2bf;
+  color: #b45f00;
+}
+.task-ai-source {
+  color: var(--blue);
+  background: #eef4ff;
+  border: 1px solid #cfe0ff;
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-weight: 850;
+  display: inline-flex;
+}
+.task-suggestion-panel {
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(223, 230, 239, .9);
+  border-radius: 16px;
+  background: rgba(255,255,255,.88);
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+.task-suggestion-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+}
+.record-list::-webkit-scrollbar,
+.record-draft-body::-webkit-scrollbar,
+.task-table::-webkit-scrollbar,
+.task-suggestion-list::-webkit-scrollbar { width: 8px; height: 8px; }
+.record-list::-webkit-scrollbar-thumb,
+.record-draft-body::-webkit-scrollbar-thumb,
+.task-table::-webkit-scrollbar-thumb,
+.task-suggestion-list::-webkit-scrollbar-thumb {
+  background: #c6d3e4;
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.task-suggestion {
+  border: 1px solid #edf1f6;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.task-suggestion input { width: 18px; height: 18px; }
+.task-suggestion b { display:block; font-size:13px; }
+.task-suggestion span { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+.pipeline-ai-card {
+  display: grid;
+  grid-template-columns: minmax(220px, .9fr) minmax(0, 1.4fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #d7e3f8;
+  border-radius: 16px;
+  background: rgba(255,255,255,.86);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.pipeline-ai-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.pipeline-ai-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #155eef, #6d5dfc);
+  color: #fff;
+}
+.pipeline-ai-title b { display:block; font-size: 13px; }
+.pipeline-ai-title span { display:block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+.forecast-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.forecast-metric {
+  border-left: 1px solid #e8edf4;
+  padding-left: 10px;
+}
+.forecast-metric span { display:block; color: var(--weak); font-size: 10px; font-weight: 800; }
+.forecast-metric strong { display:block; margin-top: 3px; font-size: 13px; }
+.task-table-wrap table { height: auto; }
+.task-type {
+  display:inline-flex;
+  border-radius:999px;
+  background:#f4f7fb;
+  color:#536174;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:800;
+}
+.task-status {
+  display:inline-flex;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:900;
+}
+.task-status.done { background:#edf7f2; color:#087051; }
+.task-status.pending { background:#fff6e8; color:#9a5b05; }
+.task-status.running { background:#eef4ff; color:#155eef; }
+.task-status.failed { background:#fff1f0; color:#b42318; }
+.audit-list {
+  min-height: 0;
+  overflow: hidden;
+  padding: 10px 12px;
+  display:grid;
+  align-content:start;
+  gap: 9px;
+}
+.audit-item {
+  display:grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #edf1f6;
+}
+.audit-item:last-child { border-bottom:0; }
+.audit-time { color: var(--weak); font-size: 11px; font-weight: 800; }
+.audit-item strong { display:block; font-size:12px; }
+.audit-item span { display:block; color: var(--muted); font-size:11px; margin-top:2px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail" aria-label="全局应用导航">
+    <div class="mark">CRM</div>
+    <button class="rail-btn active" title="CRM"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg><span>CRM</span></button>
+    <button class="rail-btn" title="企信"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg><span>企信</span></button>
+    <button class="rail-btn" title="日程"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>日程</span></button>
+    <button class="rail-btn" title="Agent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="4"/><path d="M2 14h2M20 14h2M9 13h.01M15 13h.01M9 17h6"/></svg><span>Agent</span></button>
+    <div class="rail-spacer"></div>
+    <button class="rail-btn" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.35a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.63 15 1.7 1.7 0 0 0 3.07 14H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.65 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.63 1.7 1.7 0 0 0 10 3.07V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.65a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.35 9c.1.35.38.72.65 1h.09a2 2 0 1 1 0 4H20a1.7 1.7 0 0 0-.6 1z"/></svg><span>设置</span></button>
+  </aside>
+
+  <aside class="side">
+    <div class="side-head">
+      <small>AI-NATIVE CRM</small>
+      <h1>ShareCRM 融合工作台</h1>
+    </div>
+    <button class="cmd" id="openCommand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>搜索或一句话执行</span></button>
+    <nav class="side-nav">
+      <div class="nav-section">
+        <div class="nav-title">销售主界面</div>
+        <button class="nav-item active" data-screen="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="8" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="15" width="7" height="6" rx="2"/></svg>经营首页<em>6</em></button>
+        <button class="nav-item" data-screen="accounts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>客户 360<em>12</em></button>
+        <button class="nav-item" data-screen="contacts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M4 21a8 8 0 0 1 16 0"/><path d="M19 8h2M20 7v2"/></svg>联系人<em>24</em></button>
+        <button class="nav-item" data-screen="opportunities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-7"/></svg>商机管道<em>31</em></button>
+        <button class="nav-item" data-screen="opportunity-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>商机详情<em>1</em></button>
+        <button class="nav-item" data-screen="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>智能列表<em>3</em></button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-title">高频工作流</div>
+        <button class="nav-item" data-screen="create"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="4"/></svg>新建客户</button>
+        <button class="nav-item" data-screen="record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg>销售记录</button>
+        <button class="nav-item" data-screen="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19V5"/><path d="M4 19h16"/><rect x="7" y="11" width="3" height="5"/><rect x="12" y="7" width="3" height="9"/><rect x="17" y="9" width="3" height="7"/></svg>可问报表</button>
+        <button class="nav-item" data-screen="mobile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>移动拜访</button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-title">治理与运营</div>
+        <button class="nav-item" data-screen="ai-tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>AI任务<em>18</em></button>
+        <button class="nav-item" data-screen="studio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="4"/><path d="M9 13h.01M15 13h.01M8 17h8"/></svg>Agent Studio</button>
+      </div>
+    </nav>
+    <div class="side-foot">
+      <b>CRM AI 就绪度 86%</b>
+      <p>对象权限、知识库、动作注册均已连接。合同价变更仍需审批动作授权。</p>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="context">
+        <div class="crumb" id="crumb">CRM / 经营首页</div>
+        <div class="page-title"><span id="title">华东销售经营首页</span><span class="badge blue" id="pageBadge">AI 可问可执行</span></div>
+      </div>
+      <div class="top-actions">
+        <button class="btn" id="openEvidence"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>证据</button>
+        <button class="btn" id="askPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="4"/><path d="M9 13h.01M15 13h.01M9 17h6"/></svg>问当前页</button>
+        <button class="btn primary" id="runScenario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>演示任务链</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="screen active" id="screen-dashboard">
+        <div class="ai-intent">
+          <div class="ai-intent-main">
+            <div class="ai-intent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="4"/><path d="M9 13h.01M15 13h.01M9 17h6"/></svg></div>
+            <div class="ai-intent-copy"><b>经营首页：从指标异常直接进入 AI 行动</b><span>首页只看经营状态和待处理风险；具体商机推进在「商机管道」中完成。</span></div>
+            <button class="btn primary" data-screen-link="opportunities">查看商机管道</button>
+          </div>
+          <div class="intent-flow"><span>预测金额 -18%</span><span>9 个重点客户风险</span><span>7 条 AI 行动草稿</span><span>64% 自动录入</span></div>
+        </div>
+        <div class="grid cols-4">
+          <div class="card kpi"><span>本月预测金额</span><strong>¥2,840万</strong><div class="trend down">较上周 -18%</div><div class="bar red"><i style="width:62%"></i></div><small>主因：方案报价阶段停留异常</small></div>
+          <div class="card kpi"><span>加权赢单率</span><strong>36.8%</strong><div class="trend up">较上月 +4.2%</div><div class="bar green"><i style="width:74%"></i></div><small>制造业线索质量改善</small></div>
+          <div class="card kpi"><span>重点客户风险</span><strong>9 个</strong><div class="trend down">3 个今天处理</div><div class="bar amber"><i style="width:46%"></i></div><small>AI 已生成 7 条行动草稿</small></div>
+          <div class="card kpi"><span>CRM 自动录入</span><strong>64%</strong><div class="trend up">节省 5.7h/周</div><div class="bar green"><i style="width:64%"></i></div><small>来自会议、企信、邮件、拜访语音</small></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-head"><h2>今日经营风险与入口</h2><button class="btn" data-action="explainForecast">解释下降原因</button></div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>对象</th><th>阶段</th><th>金额</th><th>AI 判断</th><th>负责人</th><th>进入工作界面</th></tr></thead>
+              <tbody>
+                <tr class="selected"><td>浙江华正 · ERP+CRM 一体化</td><td>方案报价</td><td>¥103万</td><td><span class="badge amber">停留 18 天，需差异化方案</span></td><td>刘枫 Helen</td><td><button class="btn primary" data-screen-link="opportunity-detail">进入推进流线</button></td></tr>
+                <tr><td>安徽创谱 · 数字化渠道管理</td><td>需求确认</td><td>¥88万</td><td><span class="badge red">21 天未跟进</span></td><td>吕鹏</td><td><button class="btn" data-action="assignTask">派任务</button></td></tr>
+                <tr><td>杭州乐乾 · 售后服务升级</td><td>方案报价</td><td>¥42万</td><td><span class="badge amber">联系人不足</span></td><td>顾结</td><td><button class="btn" data-action="createContactTask">补关系</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-accounts">
+        <div class="grid cols-main">
+          <div class="card">
+            <div class="card-head"><h2>客户基本信息</h2><span class="badge violet">AI Attributes 已富化</span></div>
+            <div class="card-body">
+              <div class="profile">
+                <div class="profile-card">
+                  <div class="customer-hero">
+                    <div class="profile-logo">华正</div>
+                    <div>
+                      <h3>浙江华正新材料股份有限公司</h3>
+                      <p>制造业 · 复合材料 / A 级客户 / 华东一区 / 客户负责人：刘枫</p>
+                      <div class="customer-tags">
+                        <span class="badge blue">在谈 ¥103万</span>
+                        <span class="badge green">支持者明确</span>
+                        <span class="badge amber">财务线缺失</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="customer-fields">
+                    <div class="customer-field"><span>统一社会信用代码</span><b>91330500MA2B7H2Q9X</b></div>
+                    <div class="customer-field"><span>总部所在地</span><b>浙江湖州 · 南太湖新区</b></div>
+                    <div class="customer-field"><span>客户分层</span><b>A 级战略成长客户</b></div>
+                    <div class="customer-field"><span>采购周期</span><b>年度框架 + 项目制采购</b></div>
+                    <div class="customer-field"><span>上次互动</span><b>2026-06-15 方案评审会</b></div>
+                    <div class="customer-field"><span>下一承诺</span><b>6/21 前补实施里程碑</b></div>
+                  </div>
+                </div>
+                <div class="diagnosis-panel">
+                  <div class="diagnosis-title"><b>AI 诊断信息</b><button class="btn primary" data-action="prepareVisit">生成拜访准备</button></div>
+                  <div class="diagnosis-grid">
+                    <div class="diagnosis-score"><span>购买意图</span><strong>87%</strong><span class="badge green">高</span></div>
+                    <div class="diagnosis-score"><span>关系风险</span><strong>68%</strong><span class="badge amber">财务线</span></div>
+                    <div class="diagnosis-score"><span>赢单概率</span><strong>62%</strong><span class="badge blue">+18pp 可提升</span></div>
+                  </div>
+                  <div class="diagnosis-main">
+                    <div class="diagnosis-text">
+                      <b>诊断结论</b><br>
+                      过去 90 天有 5 次有效互动，采购总监王敏明确支持移动拜访与渠道协同价值，CIO 关注接口安全和实施周期。当前最大阻塞不是需求，而是财务审批人未进入；若 6/18 前补齐预算审批链，并用行业模板证明 8 周一期上线，预计赢单概率可提升至 74%。
+                    </div>
+                    <div class="diagnosis-actions">
+                      <button class="btn" data-action="createContactTask">补财务关系</button>
+                      <button class="btn" data-action="generateSequence">生成触达序列</button>
+                      <button class="btn" data-action="showEvidence">查看证据</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>BANT / FABM</h2><button class="btn" data-action="refreshBant">刷新评分</button></div>
+            <div class="card-body">
+              <div class="risk-list">
+                <div class="risk"><div><b>Budget 预算</b><p>预算 120 万，需确认财务审批链。</p></div><span class="badge amber">72%</span></div>
+                <div class="risk"><div><b>Authority 决策</b><p>采购总监强影响，CFO 角色未进入。</p></div><span class="badge red">61%</span></div>
+                <div class="risk"><div><b>Need 需求</b><p>渠道协同、移动拜访、回款可视化清晰。</p></div><span class="badge green">91%</span></div>
+                <div class="risk"><div><b>Timing 时间</b><p>希望 7 月底前完成一期上线。</p></div><span class="badge green">84%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid cols-2" style="margin-top:14px">
+          <div class="card">
+            <div class="card-head"><h2>关键人地图</h2><button class="btn" data-action="generateSequence">生成触达序列</button></div>
+            <div class="card-body">
+              <div class="relation-map">
+                <div class="edge" style="left:164px;top:124px;width:188px;transform:rotate(-11deg)"></div>
+                <div class="edge" style="left:188px;top:150px;width:170px;transform:rotate(18deg)"></div>
+                <div class="edge" style="left:350px;top:128px;width:154px;transform:rotate(28deg)"></div>
+                <div class="node key" style="left:36px;top:92px"><b>王敏</b><span>采购总监 · 支持者</span></div>
+                <div class="node" style="left:300px;top:42px"><b>赵磊</b><span>CIO · 决策者</span></div>
+                <div class="node" style="left:290px;top:178px"><b>陈洁</b><span>业务负责人</span></div>
+                <div class="node" style="left:502px;top:132px"><b>财务负责人</b><span>未知 · 阻塞</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>最近互动时间线</h2><span class="badge blue">自动聚合</span></div>
+            <div class="card-body">
+              <div class="timeline">
+                <div class="event"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"/><path d="M4 9h16"/></svg></div><div><b>方案评审会</b><p>客户确认移动拜访、渠道协同为核心价值。</p></div><time>6/15</time></div>
+                <div class="event"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.34 1.89.63 2.78a2 2 0 0 1-.45 2.11L8 9.9a16 16 0 0 0 6.1 6.1l1.29-1.29a2 2 0 0 1 2.11-.45c.89.29 1.82.5 2.78.63A2 2 0 0 1 22 16.92z"/></svg></div><div><b>电话跟进</b><p>采购总监要求补充实施周期和预算拆分。</p></div><time>6/11</time></div>
+                <div class="event"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg></div><div><b>企信讨论</b><p>内部售前确认行业模板可复用 68%。</p></div><time>6/9</time></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-contacts">
+        <div class="card">
+          <div class="card-head"><h2>联系人列表 · AI 关系经营</h2><span class="badge amber">4 个关系缺口</span></div>
+          <div class="card-body">
+            <div class="list-query">
+              <input id="contactQueryInput" value="找浙江华正相关联系人，识别缺失决策角色，并生成本周触达计划">
+              <button class="btn primary" data-action="applyContactAI">运行分析</button>
+            </div>
+            <div class="condition-strip">
+              <span class="label">AI 已解析</span>
+              <span class="filter-chip ai">浙江华正</span>
+              <span class="filter-chip ai">决策链缺口</span>
+              <span class="filter-chip ai">本周触达</span>
+              <span class="filter-chip">按影响力排序</span>
+              <span class="filter-chip">仅在谈商机相关</span>
+            </div>
+            <div class="missing-filter">
+              <div class="filter-field">
+                <label>关系角色</label>
+                <select id="contactRoleFilter">
+                  <option>财务审批人 / CFO</option>
+                  <option>技术评估人 / CIO</option>
+                  <option>业务负责人</option>
+                  <option>采购负责人</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label>关系状态</label>
+                <select id="contactRiskFilter">
+                  <option>缺失或弱关系</option>
+                  <option>30 天未互动</option>
+                  <option>反对者或未知态度</option>
+                  <option>需高层介入</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label>触达目标</label>
+                <select id="contactGoalFilter">
+                  <option>补齐决策链</option>
+                  <option>预约技术答疑</option>
+                  <option>确认预算审批</option>
+                  <option>推进商务谈判</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label>AI 补充条件</label>
+                <input id="contactIntent" value="优先影响 ¥103万商机推进的关键人">
+              </div>
+              <button class="btn primary" data-action="generateContactPlan">生成触达计划</button>
+            </div>
+            <div class="list-table-wrap">
+              <table>
+                <thead><tr><th><input type="checkbox" checked></th><th>联系人</th><th>客户</th><th>角色</th><th>影响力</th><th>最近互动</th><th>AI 关系判断</th><th>下一步</th></tr></thead>
+                <tbody id="contactRows">
+                  <tr class="selected"><td><input type="checkbox" checked></td><td><div class="name"><div class="avatar">王</div><b>王敏</b></div></td><td>浙江华正</td><td>采购总监</td><td>高</td><td>6/15</td><td><span class="badge green">支持者</span></td><td><button class="btn" data-action="generateContactPlan">引荐财务</button></td></tr>
+                  <tr class="selected"><td><input type="checkbox" checked></td><td><div class="name"><div class="avatar">赵</div><b>赵磊</b></div></td><td>浙江华正</td><td>CIO</td><td>高</td><td>6/09</td><td><span class="badge blue">技术决策</span></td><td><button class="btn" data-action="generateContactPlan">约答疑</button></td></tr>
+                  <tr class="selected"><td><input type="checkbox" checked></td><td><div class="name"><div class="avatar">陈</div><b>陈洁</b></div></td><td>浙江华正</td><td>业务负责人</td><td>中</td><td>6/11</td><td><span class="badge amber">需强化</span></td><td><button class="btn" data-action="generateContactPlan">补价值</button></td></tr>
+                  <tr><td><input type="checkbox"></td><td><div class="name"><div class="avatar">?</div><b>财务负责人</b></div></td><td>浙江华正</td><td>CFO / 财务</td><td>高</td><td>未知</td><td><span class="badge red">缺失</span></td><td><button class="btn primary" data-action="createContactTask">补关系</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="list-action-bar">
+          <div class="list-action-summary">
+            <b>已选 3 个联系人 · AI 建议先由王敏引荐财务负责人</b>
+            <span>将生成触达序列、补关系任务和技术答疑邀约，全部写入客户动态与商机动态。</span>
+          </div>
+          <button class="btn" data-action="applyContactAI">刷新关系洞察</button>
+          <button class="btn" data-action="generateSequence">生成话术</button>
+          <button class="btn primary" data-action="generateContactPlan">创建触达任务</button>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-opportunities">
+        <div class="pipeline-ai-card">
+          <div class="pipeline-ai-title">
+            <div class="pipeline-ai-icon">AI</div>
+            <div><b>综合分析预测</b><span>基于 31 个商机、94 条跟进、7 条会议纪要实时预测</span></div>
+          </div>
+          <div class="forecast-metrics">
+            <div class="forecast-metric"><span>本月预测</span><strong>¥2,840万 · -18%</strong></div>
+            <div class="forecast-metric"><span>最大阻塞</span><strong>方案报价停留 31 天</strong></div>
+            <div class="forecast-metric"><span>赢单概率</span><strong>36.8% · +4.2%</strong></div>
+            <div class="forecast-metric"><span>AI建议</span><strong>优先处理 3 个高额风险</strong></div>
+          </div>
+          <button class="btn primary" data-action="explainForecast">解释并下钻</button>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>商机管道 · AI 阶段推进建议</h2><button class="btn primary" data-screen-link="opportunity-detail">打开浙江华正推进流线</button></div>
+          <div class="card-body">
+            <div class="pipeline">
+              <div class="lane"><div class="lane-head"><span>线索</span><b>¥1,420万</b></div>
+                <div class="deal"><b>苏州宏景</b><small>设备制造 · 官网咨询 · 王经理</small><div class="deal-meta"><span>金额<strong>¥58万</strong></span><span>停留<strong>2天</strong></span><span>概率<strong>18%</strong></span></div><div class="deal-ai"><span class="ai-tag blue">AI 高匹配</span><p>制造业画像匹配，但联系人角色未验证，建议 24 小时内首触。</p></div><div class="deal-next"><span>下一步：核验联系人并分配</span><button class="btn">分配</button></div></div>
+              </div>
+              <div class="lane"><div class="lane-head"><span>需求确认</span><b>¥1,620万</b></div>
+                <div class="deal"><b>安徽创谱科技</b><small>渠道数字化 · 预算未确认</small><div class="deal-meta"><span>金额<strong>¥88万</strong></span><span>停留<strong>21天</strong></span><span>概率<strong>31%</strong></span></div><div class="deal-ai"><span class="ai-tag red">AI 阻塞：未跟进</span><p>超过团队基线 14 天，会议承诺未回写，预测金额风险 ¥88 万。</p></div><div class="deal-next"><span>下一步：停滞复盘 + 补预算</span><button class="btn" data-action="assignTask">派任务</button></div></div>
+                <div class="deal"><b>江苏云旗</b><small>生产协同 · CIO 已确认需求</small><div class="deal-meta"><span>金额<strong>¥65万</strong></span><span>停留<strong>7天</strong></span><span>概率<strong>48%</strong></span></div><div class="deal-ai"><span class="ai-tag green">AI 健康</span><p>需求和时间清晰，建议补 POC 成功指标，避免后续验收争议。</p></div><div class="deal-next"><span>下一步：确认 POC 指标</span><button class="btn">查看</button></div></div>
+              </div>
+              <div class="lane"><div class="lane-head"><span>方案报价</span><b>¥4,260万</b></div>
+                <div class="deal"><b>浙江华正</b><small>ERP+CRM 一体化 · 王敏/赵磊</small><div class="deal-meta"><span>金额<strong>¥103万</strong></span><span>停留<strong>18天</strong></span><span>概率<strong>62%</strong></span></div><div class="deal-ai"><span class="ai-tag amber">AI 建议：补财务线</span><p>财务审批人未进入，且竞品低价切入；先补预算链再推进谈判。</p></div><div class="deal-next"><span>下一步：补预算拆分</span><button class="btn primary" data-screen-link="opportunity-detail">推进</button></div></div>
+                <div class="deal"><b>杭州乐乾</b><small>售后服务升级 · 联系人单薄</small><div class="deal-meta"><span>金额<strong>¥42万</strong></span><span>停留<strong>12天</strong></span><span>概率<strong>37%</strong></span></div><div class="deal-ai"><span class="ai-tag amber">AI 缺口：采购角色</span><p>仅有业务联系人，缺采购经理和技术评估人，报价反馈不可判断。</p></div><div class="deal-next"><span>下一步：补关键联系人</span><button class="btn" data-action="createContactTask">补关系</button></div></div>
+              </div>
+              <div class="lane"><div class="lane-head"><span>商务谈判</span><b>¥2,080万</b></div>
+                <div class="deal"><b>上海泽森</b><small>合同法务审核 · 数据安全条款</small><div class="deal-meta"><span>金额<strong>¥220万</strong></span><span>停留<strong>9天</strong></span><span>概率<strong>76%</strong></span></div><div class="deal-ai"><span class="ai-tag blue">AI 条款风险</span><p>验收口径和审计频次需固化，折扣空间建议不超过 5%。</p></div><div class="deal-next"><span>下一步：法务条款复核</span><button class="btn">合同</button></div></div>
+              </div>
+              <div class="lane"><div class="lane-head"><span>赢单/交付</span><b>¥1,180万</b></div>
+                <div class="deal"><b>苏州拓远</b><small>首款 40% 待回款 · 交付预备</small><div class="deal-meta"><span>金额<strong>¥96万</strong></span><span>停留<strong>3天</strong></span><span>概率<strong>100%</strong></span></div><div class="deal-ai"><span class="ai-tag green">AI 交接：回款优先</span><p>赢单已确认，但首款未到账；未回款前不建议启动正式实施资源。</p></div><div class="deal-next"><span>下一步：首款回款提醒</span><button class="btn">交接</button></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-opportunity-detail">
+        <div class="deal-focus">
+          <div class="stage-strip">
+            <button class="stage-step done" data-stage-index="0"><div class="stage-no">1</div><div class="stage-cn">线索</div><div class="stage-en">Lead</div></button>
+            <button class="stage-step done" data-stage-index="1"><div class="stage-no">2</div><div class="stage-cn">需求确认</div><div class="stage-en">Qualification</div></button>
+            <button class="stage-step active" data-stage-index="2"><div class="stage-no">3</div><div class="stage-cn">方案报价</div><div class="stage-en">Proposal</div></button>
+            <button class="stage-step" data-stage-index="3"><div class="stage-no">4</div><div class="stage-cn">商务谈判</div><div class="stage-en">Negotiation</div></button>
+            <button class="stage-step" data-stage-index="4"><div class="stage-no">5</div><div class="stage-cn">赢单</div><div class="stage-en">Closed Won</div></button>
+            <button class="stage-step" data-stage-index="5"><div class="stage-no">6</div><div class="stage-cn">交付</div><div class="stage-en">Delivery</div></button>
+          </div>
+
+          <div class="work-surface">
+            <div class="deal-left">
+              <div class="progress-line"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
+              <div class="deal-card">
+                <div class="deal-summary">
+                  <div>
+                    <h2 id="dealStageTitle">浙江华正 · 方案报价</h2>
+                    <p id="dealStageMeta">方案评审完成 · 金额 ¥1,030,000 · 停留 18 天</p>
+                  </div>
+                  <div class="soft-pill" id="dealStagePill">超基准停留</div>
+                </div>
+                <div class="deal-info-grid">
+                  <div class="deal-info-item"><span>商机编号</span><b id="dealCode">OPP-2026-HZ-0417</b></div>
+                  <div class="deal-info-item"><span>客户</span><b id="dealAccount">浙江华正新材料</b></div>
+                  <div class="deal-info-item"><span>负责人</span><b id="dealOwner">刘枫 · 华东一区</b></div>
+                  <div class="deal-info-item"><span>赢单概率</span><b id="dealProbability">62%</b></div>
+                  <div class="deal-info-item"><span>预计签约</span><b id="dealCloseDate">2026-07-31</b></div>
+                  <div class="deal-info-item"><span>关键联系人</span><b id="dealContact">王敏 / 赵磊</b></div>
+                  <div class="deal-info-item"><span>竞争态势</span><b id="dealCompetitor">销售易 + 低代码</b></div>
+                  <div class="deal-info-item"><span>下一承诺</span><b id="dealNextStep">6/21 补预算拆分</b></div>
+                </div>
+              </div>
+
+              <div class="deal-card">
+                <div class="section-title"><span id="stageInsightTitle">AI 竞品对比</span> <span class="badge blue" id="stageInsightBadge">销售易 + 低代码集成商</span></div>
+                <div class="compare-grid">
+                  <div class="compare-card" id="stageCompare1"><strong>移动拜访</strong><span>我方优势</span></div>
+                  <div class="compare-card warn" id="stageCompare2"><strong>价格</strong><span>竞品更低</span></div>
+                  <div class="compare-card good" id="stageCompare3"><strong>渠道协同</strong><span>我方独有</span></div>
+                </div>
+              </div>
+
+              <div class="deal-card">
+                <div class="section-title" id="stageSuggestTitle">AI 生成差异化方案建议</div>
+                <div class="suggest-table">
+                  <div class="suggest-row"><span id="stageSuggestLabel1">方案要点 1</span><strong id="stageSuggestText1">重点展示移动拜访 + 审批流定制能力（竞品短板）</strong></div>
+                  <div class="suggest-row"><span id="stageSuggestLabel2">方案要点 2</span><strong id="stageSuggestText2">提供制造业同规模客户案例（华峰、桐昆）</strong></div>
+                  <div class="suggest-row"><span id="stageSuggestLabel3">价格策略</span><strong id="stageSuggestText3">分两期报价，首期 ERP+CRM 核心 ¥103 万，二期扩展 ¥42 万</strong></div>
+                  <div class="suggest-row warning"><span id="stageSuggestLabel4">风险提示</span><strong id="stageSuggestText4">预算审批链未确认前不宜进入商务谈判</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="auto-panel">
+              <div class="auto-title" id="stageAutoTitle">AI 自动触发工作</div>
+              <div class="trigger" id="stageTrigger">触发条件：进入方案报价 + 停留超 14 天</div>
+              <p id="stageAutoDesc">进入方案报价阶段且停留超基准时，AI 主动分析阻塞原因，并生成可确认的 GUI 动作。</p>
+              <div id="stageTasks">
+                <div class="auto-task"><div class="task-icon">比</div><div><strong>竞品对比分析</strong><span>对比销售易、低代码集成商优劣势</span></div></div>
+                <div class="auto-task"><div class="task-icon">邮</div><div><strong>生成差异化邮件</strong><span>突出移动拜访和渠道协同优势</span></div></div>
+                <div class="auto-task"><div class="task-icon">超</div><div><strong>超期预警</strong><span>停留 18 天 > 基准 14 天，推送给经理</span></div></div>
+                <div class="auto-task"><div class="task-icon">清</div><div><strong>生成 Push 清单</strong><span>补决策链、发送方案、预约预算确认会</span></div></div>
+              </div>
+              <button class="btn primary" id="stagePrimaryAction" style="width:100%;margin-top:18px" data-action="confirmAdvance">确认生成推进动作</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-list">
+        <div class="card">
+          <div class="card-head"><h2>智能列表 · 自然语言生成视图</h2><span class="badge blue">3 个待处理</span></div>
+          <div class="card-body">
+            <div class="list-query">
+              <input id="listQueryInput" value="找近30天无有效跟进、缺少决策链的制造业重点客户，并按商机金额排序">
+              <button class="btn primary" data-action="applyAiFilter">运行筛选</button>
+            </div>
+            <div class="condition-strip">
+              <span class="label">AI 已解析</span>
+              <span class="filter-chip ai">近 30 天无有效跟进</span>
+              <span class="filter-chip ai">制造业</span>
+              <span class="filter-chip ai">重点客户</span>
+              <span class="filter-chip ai">缺决策链</span>
+              <span class="filter-chip">商机金额从高到低</span>
+              <span class="filter-chip">仅本人团队</span>
+            </div>
+            <div class="missing-filter">
+              <div class="filter-field">
+                <label>缺失字段</label>
+                <select id="missingField">
+                  <option>决策链 / 财务审批人</option>
+                  <option>联系人手机号</option>
+                  <option>预算金额</option>
+                  <option>预计成交日期</option>
+                  <option>下一步行动</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label>缺失类型</label>
+                <select id="missingType">
+                  <option>为空或置信度低于 80%</option>
+                  <option>为空</option>
+                  <option>超过 14 天未更新</option>
+                  <option>与会议纪要冲突</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label>时间范围</label>
+                <select id="missingRange">
+                  <option>近 30 天</option>
+                  <option>近 14 天</option>
+                  <option>本季度</option>
+                  <option>全部在谈</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label>AI 补充条件</label>
+                <input id="missingIntent" value="制造业重点客户，商机金额 ¥30万以上">
+              </div>
+              <button class="btn primary" data-action="applyMissingFilter">应用缺失筛选</button>
+            </div>
+            <div class="list-table-wrap">
+            <table>
+              <thead><tr><th><input type="checkbox" checked></th><th>客户名称</th><th>负责人</th><th>行业</th><th>商机金额</th><th>最后跟进</th><th>AI 属性</th><th>下一步</th></tr></thead>
+              <tbody id="customerRows">
+                <tr class="selected"><td><input type="checkbox" checked></td><td><div class="name"><div class="avatar">华</div><b>浙江华正新材料股份有限公司</b></div></td><td>刘枫 Helen</td><td>制造业</td><td>¥103万</td><td>6/15</td><td><span class="ai-attribute">决策链缺失</span></td><td><button class="btn" data-action="advanceDeal">推进</button></td></tr>
+                <tr class="selected"><td><input type="checkbox" checked></td><td><div class="name"><div class="avatar">创</div><b>安徽创谱科技股份有限公司</b></div></td><td>吕鹏</td><td>制造业</td><td>¥88万</td><td>5/25</td><td><span class="ai-attribute">21天未跟进</span></td><td><button class="btn" data-action="assignTask">派任务</button></td></tr>
+                <tr><td><input type="checkbox" checked></td><td><div class="name"><div class="avatar">乐</div><b>杭州乐乾科学仪器有限公司</b></div></td><td>顾结</td><td>制造业</td><td>¥42万</td><td>6/06</td><td><span class="ai-attribute">联系人不足</span></td><td><button class="btn" data-action="createContactTask">补关系</button></td></tr>
+                <tr><td><input type="checkbox"></td><td><div class="name"><div class="avatar">森</div><b>上海森昱装备有限公司</b></div></td><td>陈易</td><td>制造业</td><td>¥31万</td><td>6/12</td><td><span class="badge green">健康</span></td><td><button class="btn">查看</button></td></tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+        <div class="list-action-bar">
+          <div class="list-action-summary">
+            <b>已选 3 个客户 · 建议创建 3 条补数/跟进任务</b>
+            <span>截止 2026-06-17 18:00，保留筛选条件、AI 依据、确认人与执行结果审计。</span>
+          </div>
+          <div class="field"><label>视图名称 <span class="confidence">AI 生成</span></label><input value="制造业重点客户风险跟进"></div>
+          <button class="btn" data-action="saveView">保存视图</button>
+          <button class="btn primary" data-action="bulkCreateTask">创建任务</button>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-create">
+        <div class="grid cols-main">
+          <div class="card">
+            <div class="card-head"><h2>自然语言新建客户</h2><button class="btn primary" data-action="prefillCustomer">从文本预填</button></div>
+            <div class="card-body">
+              <div class="record-box" style="margin-bottom:14px">
+                <div class="record-raw">帮我新建浙江华正新材料股份有限公司，制造业 A 类客户，在湖州，采购总监王敏，近期要看 ERP+CRM 一体化方案，预算大概 120 万，预计 7 月底决策。</div>
+              </div>
+              <p class="muted" style="margin:0 0 12px;font-weight:750">字段右侧为 AI 预填状态：高可信可直接采用，需确认表示建议人工核对后再提交。</p>
+              <div class="form-grid">
+                <div class="field"><label>客户名称 <span class="confidence">AI 高可信</span></label><input id="fAccount" value=""></div>
+                <div class="field"><label>客户级别 <span class="confidence check">规则推荐</span></label><select id="fLevel"><option>A 类客户</option><option>B 类客户</option></select></div>
+                <div class="field"><label>行业 <span class="confidence">AI 高可信</span></label><input id="fIndustry" value=""></div>
+                <div class="field"><label>城市 <span class="confidence">AI 高可信</span></label><input id="fCity" value=""></div>
+                <div class="field"><label>联系人 <span class="confidence check">待查重</span></label><input id="fContact" value=""></div>
+                <div class="field"><label>预算 <span class="confidence warn">需确认</span></label><input id="fBudget" value=""></div>
+                <div class="field"><label>预计决策时间 <span class="confidence warn">需确认</span></label><input id="fDate" value=""></div>
+                <div class="field"><label>查重结果</label><input id="fDuplicate" value="待查询"></div>
+                <div class="field" style="grid-column:1 / -1"><label>需求摘要 <span class="confidence">AI 摘要</span></label><textarea id="fNeed"></textarea></div>
+              </div>
+              <button class="btn primary" style="margin-top:12px" data-action="submitCustomer">提交并生成后续动作</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>AI 查重与动作</h2><span class="badge amber">待确认</span></div>
+            <div class="card-body">
+              <div class="risk-list">
+                <div class="risk"><div><b>疑似已有客户</b><p>浙江华正新材料股份有限公司，匹配度 91%。建议打开已有客户并补充字段。</p></div><span class="badge amber">查重</span></div>
+                <div class="risk"><div><b>后续任务</b><p>新建商机、创建拜访任务、生成首次触达邮件。</p></div><span class="badge blue">3 动作</span></div>
+                <div class="risk"><div><b>权限</b><p>当前用户可创建客户和联系人，阶段推进需销售经理权限。</p></div><span class="badge green">通过</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-record">
+        <div class="record-filter-bar">
+          <span class="muted" style="font-weight:900">筛选:</span>
+          <button class="filter-chip ai">全部记录</button>
+          <button class="filter-chip">本月</button>
+          <button class="filter-chip">会议</button>
+          <button class="filter-chip">电话</button>
+          <button class="filter-chip ai" data-action="extractRecord">AI 摘要</button>
+          <input class="record-search" value="搜索销售记录、客户、联系人或承诺事项">
+          <button class="btn primary" data-action="extractRecord">写销售记录</button>
+        </div>
+
+        <div class="record-kpis">
+          <div class="record-kpi"><strong>1,247</strong><span>本月总记录</span></div>
+          <div class="record-kpi"><strong>38%</strong><span>AI 自动提取</span></div>
+          <div class="record-kpi"><strong>8.3天</strong><span>平均跟进间隔</span></div>
+          <div class="record-kpi warn"><strong>12</strong><span>超 30 天未跟进</span></div>
+        </div>
+
+        <div class="record-workbench">
+          <div class="record-list">
+            <div class="sales-record-item">
+              <div class="record-dot"></div>
+              <div>
+                <h3>浙江华正 · 方案评审会</h3>
+                <p>与采购总监张明、IT 总监李明辉评审 ERP+CRM 方案 V2，客户确认方案价值 ¥80-120 万预算，要求补充移动端对比和财务审批流程说明。</p>
+                <div class="record-meta">2026-06-15 14:30-16:00 · 刘枫</div>
+                <span class="ai-extract-pill">AI提取：预算确认 ¥80-120万 · 移动端强需求 · 缺少财务审批人 · 下次提交 6/25</span>
+              </div>
+            </div>
+            <div class="sales-record-item">
+              <div class="record-dot green"></div>
+              <div>
+                <h3>上海医创 · 合同条款确认</h3>
+                <p>法务部返回 SaaS 升级合同评审意见 V2，核心条款已通过，仅需调整数据安全条款中的审计频次。CTO 王建国邮件确认技术方案。</p>
+                <div class="record-meta">2026-06-14 10:15 · 系统自动</div>
+                <span class="ai-extract-pill">AI提取：合同条款通过 · 数据安全条款待调整 · CTO 确认</span>
+              </div>
+            </div>
+            <div class="sales-record-item">
+              <div class="record-dot"></div>
+              <div>
+                <h3>苏州锐博 · 需求确认沟通</h3>
+                <p>与生产副总孙丽华电话沟通 MES 模块需求。客户现有用友 U8，需对接生产排程和质量追溯，IT 主管吴强希望下周看到详细技术方案。</p>
+                <div class="record-meta">2026-06-13 16:00-16:35 · 吕鹏</div>
+                <span class="ai-extract-pill">AI提取：用友U8对接 · MES+质量追溯 · 方案截止 6/18 · 关键人孙总+吴主管</span>
+              </div>
+            </div>
+            <div class="sales-record-item">
+              <div class="record-dot green"></div>
+              <div>
+                <h3>杭州乐乾 · 发送产品资料</h3>
+                <p>向杭州乐乾发送仪器行业 CRM 解决方案 PPT 和案例集，等待回复确认是否有 POC 需求。</p>
+                <div class="record-meta">2026-06-10 09:15 · 顾结</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="record-draft-panel">
+            <div class="record-draft-head"><h2>当前待处理记录</h2><button class="btn primary" data-action="extractRecord">发给 ShareAgent 提取</button></div>
+            <div class="record-draft-body">
+              <div class="record-box">
+                <div class="record-raw">原始语音转写：今天下午和浙江华正王敏、赵磊开了方案评审。客户认可移动拜访和渠道协同，担心实施周期超过 8 周。王敏说预算 120 万左右，但财务负责人还没拉进来。我们承诺周五前补一版实施里程碑和预算拆分，下周二安排技术答疑。</div>
+              </div>
+              <div class="risk-list" style="margin-top:10px">
+                <div class="risk"><div><b>处理方式</b><p>提取客户、联系人、关注点、风险、承诺事项和下一步，结果在右侧 Chat 确认。</p></div><span class="badge blue">LUI</span></div>
+                <div class="risk"><div><b>写入策略</b><p>默认不直接回写，需在 Chat 内确认后同步客户动态、商机动态和任务。</p></div><span class="badge amber">待确认</span></div>
+              </div>
+            </div>
+            <div class="record-draft-actions">
+              <button class="btn primary" data-action="extractRecord">AI 提取到 Chat</button>
+              <button class="btn" data-action="createNextMeeting">建技术答疑</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-reports">
+        <div class="grid cols-main">
+          <div class="card">
+            <div class="card-head"><h2>可问报表 · 预测金额趋势</h2><button class="btn primary" data-action="explainForecast">问：为什么下降？</button></div>
+            <div class="card-body">
+              <div class="chart">
+                <div class="axis"><span>3000万</span><span>2400万</span><span>1800万</span><span>1200万</span><span>0</span></div>
+                <div class="plot">
+                  <div class="polyline">
+                    <svg viewBox="0 0 560 220" preserveAspectRatio="none">
+                      <polyline points="0,82 80,70 160,64 240,92 320,86 400,128 480,142 560,136" fill="none" stroke="#1769ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                      <polyline points="0,112 80,118 160,108 240,130 320,126 400,154 480,166 560,160" fill="none" stroke="#f79009" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 8"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>AI 归因卡</h2><span class="badge red">-18%</span></div>
+            <div class="card-body">
+              <div class="risk-list">
+                <div class="risk"><div><b>报价阶段停留过长</b><p>31 个商机平均停留 31 天，超过基线 13 天。</p></div><span class="badge red">71%</span></div>
+                <div class="risk"><div><b>制造业预算审批后移</b><p>6 个商机提到财务审批人未进入。</p></div><span class="badge amber">42%</span></div>
+                <div class="risk"><div><b>跟进节奏下降</b><p>本周有效跟进次数少于上周 19%。</p></div><span class="badge amber">36%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-head"><h2>AI 生成的临时工作台组件</h2><button class="btn primary" data-action="saveReportAgent">保存为每日晨报 Agent</button></div>
+          <div class="card-body">
+            <table>
+              <thead><tr><th>组件</th><th>口径</th><th>结果</th><th>可执行动作</th></tr></thead>
+              <tbody>
+                <tr><td>阶段漏斗</td><td>华东 / 本月 / 本人团队</td><td>方案报价阻塞</td><td><button class="btn">下钻</button></td></tr>
+                <tr><td>风险商机列表</td><td>金额 TOP 20 + AI 风险</td><td>命中 9 个</td><td><button class="btn" data-action="assignTask">批量派发</button></td></tr>
+                <tr><td>晨报订阅</td><td>工作日 9:00</td><td>草稿</td><td><button class="btn" data-screen-link="studio">配置</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-mobile">
+        <div class="grid cols-2">
+          <div class="card">
+            <div class="card-head"><h2>移动端拜访工作流</h2><span class="badge blue">底部 AI 抽屉</span></div>
+            <div class="card-body">
+              <div class="mobile-shell">
+                <div class="mobile-top"><span>9:41</span><span>浙江华正拜访</span><span>5G</span></div>
+                <div class="mobile-content">
+                  <div class="profile-card" style="text-align:left">
+                    <h3>浙江华正</h3>
+                    <p>距离 1.2km · 14:30 方案评审 · 采购总监王敏</p>
+                    <div class="metric-row"><div class="metric-mini"><span>商机</span><b>¥103万</b></div><div class="metric-mini"><span>风险</span><b>预算链</b></div><div class="metric-mini"><span>准备</span><b>已完成</b></div></div>
+                  </div>
+                  <div class="timeline" style="margin-top:12px">
+                    <div class="event"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/></svg></div><div><b>按住说话写记录</b><p>AI 自动关联客户、提取需求、生成任务。</p></div><time></time></div>
+                  </div>
+                </div>
+                <div class="bottom-sheet">
+                  <div class="sheet-handle"></div>
+                  <b>ShareAgent</b>
+                  <p class="muted">刚拜访完浙江华正，帮我写销售记录并创建下周二技术答疑。</p>
+                  <button class="btn primary" style="width:100%;margin-top:10px" data-action="mobileCommit">生成半屏表单</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>半屏表单输出</h2><button class="btn primary" data-action="mobileCommit">模拟生成</button></div>
+            <div class="card-body">
+              <div class="risk-list">
+                <div class="risk"><div><b>销售记录</b><p>已提取客户关注、竞品风险、下一步承诺。</p></div><span class="badge green">94%</span></div>
+                <div class="risk"><div><b>任务</b><p>周五前补实施里程碑和预算拆分。</p></div><span class="badge green">91%</span></div>
+                <div class="risk"><div><b>日程</b><p>下周二 10:00 技术答疑，邀请售前。</p></div><span class="badge amber">需确认</span></div>
+                <div class="risk"><div><b>风险字段</b><p>预算审批链缺失，建议更新商机风险。</p></div><span class="badge red">二次确认</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-ai-tasks">
+        <div class="task-board">
+          <div class="task-filter-bar">
+            <span class="muted" style="font-weight:900">视图:</span>
+            <button class="filter-chip ai">我的任务</button>
+            <button class="filter-chip">团队</button>
+            <button class="filter-chip">本周</button>
+            <button class="filter-chip amber">逾期</button>
+            <input class="task-search" value="搜索任务、客户、负责人或来源">
+            <button class="btn primary" data-action="suggestTasks">新建任务</button>
+          </div>
+
+          <div class="task-kpis">
+            <div class="task-kpi"><strong>8</strong><span>待处理</span></div>
+            <div class="task-kpi warn"><strong>2</strong><span>已逾期</span></div>
+            <div class="task-kpi"><strong>3</strong><span>今日待办</span></div>
+            <div class="task-kpi good"><strong>12</strong><span>本周已完成</span></div>
+          </div>
+
+          <div class="task-main-grid">
+            <div class="task-board-card">
+              <div class="task-board-head"><h2>任务列表</h2><button class="btn" data-action="suggestTasks">看板</button></div>
+              <div class="task-table">
+                <table>
+                  <thead><tr><th>状态</th><th>任务</th><th>关联客户</th><th>截止日期</th><th>负责人</th><th>优先级</th><th>来源</th></tr></thead>
+                  <tbody>
+                    <tr class="overdue"><td><input type="checkbox"></td><td><b>补齐浙江华正财务审批人信息</b></td><td>浙江华正</td><td><span class="badge amber">6/18 · 1天后</span></td><td>刘枫</td><td><span class="task-priority">高</span></td><td><span class="task-ai-source">AI推荐</span></td></tr>
+                    <tr class="overdue"><td><input type="checkbox"></td><td><b>安徽创谱复盘跟进</b> <span class="badge amber">逾期</span></td><td>安徽创谱</td><td><span class="badge red">6/15 已逾期2天</span></td><td>吕鹏</td><td><span class="task-priority">高</span></td><td><span class="task-ai-source">AI推荐</span></td></tr>
+                    <tr><td><input type="checkbox"></td><td><b>发送苏州锐博 MES 技术方案</b></td><td>苏州锐博</td><td>6/18</td><td>吕鹏</td><td><span class="task-priority">中</span></td><td>手动创建</td></tr>
+                    <tr><td><input type="checkbox"></td><td><b>生成差异化方案邮件</b></td><td>浙江华正</td><td>今天 18:00</td><td>刘枫</td><td><span class="task-priority">中</span></td><td><span class="task-ai-source">AI推荐</span></td></tr>
+                    <tr><td><input type="checkbox" checked></td><td><b>拜访语音生成销售记录</b></td><td>浙江华正</td><td>已完成</td><td>刘枫</td><td><span class="badge green">完成</span></td><td>销售记录</td></tr>
+                    <tr><td><input type="checkbox"></td><td><b>杭州乐乾补采购负责人</b></td><td>杭州乐乾</td><td>6/20</td><td>顾结</td><td><span class="task-priority">中</span></td><td><span class="task-ai-source">AI推荐</span></td></tr>
+                    <tr><td><input type="checkbox"></td><td><b>上海泽森合同法务条款复核</b></td><td>上海泽森</td><td>6/21</td><td>陈易</td><td><span class="task-priority">高</span></td><td>审批流</td></tr>
+                    <tr><td><input type="checkbox"></td><td><b>江苏云旗确认 POC 成功指标</b></td><td>江苏云旗</td><td>6/22</td><td>吕鹏</td><td><span class="task-priority">中</span></td><td>商机阶段</td></tr>
+                    <tr><td><input type="checkbox"></td><td><b>苏州拓远首款回款提醒</b></td><td>苏州拓远</td><td>6/24</td><td>刘枫</td><td><span class="task-priority">高</span></td><td><span class="task-ai-source">AI推荐</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="task-suggestion-panel">
+              <div class="task-board-head"><h2>AI 任务建议</h2><button class="btn" data-action="suggestTasks">ShareAgent</button></div>
+              <div class="task-suggestion-list">
+                <div class="task-suggestion"><input type="checkbox"><div><b>杭州乐乾：补充采购经理联系人</b><span>检测到客户仅 1 个联系人，缺少采购决策角色 · 建议截止 6/20</span></div><span class="badge amber">中风险</span></div>
+                <div class="task-suggestion"><input type="checkbox"><div><b>浙江华正：安排技术方案演示会</b><span>方案报价停留 18 天，建议邀请 CIO 与财务负责人共同评审</span></div><span class="badge red">高优先</span></div>
+                <div class="task-suggestion"><input type="checkbox"><div><b>安徽创谱：生成停滞复盘清单</b><span>21 天未跟进，建议补预算状态、竞品状态和下一步会议</span></div><span class="badge red">逾期</span></div>
+                <div class="task-suggestion"><input type="checkbox"><div><b>苏州拓远：首款回款提醒</b><span>赢单后首款未到账，建议同步财务并生成客户提醒邮件</span></div><span class="badge amber">回款</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-studio">
+        <div class="studio-layout">
+          <div class="card">
+            <div class="card-head"><h2>启用清单</h2></div>
+            <div class="card-body">
+              <div class="step-list">
+                <div class="step"><i>✓</i><div><b>连接 CRM 对象</b><span class="muted">客户、商机、联系人、任务</span></div></div>
+                <div class="step"><i>✓</i><div><b>绑定知识库</b><span class="muted">销售方法论、行业方案</span></div></div>
+                <div class="step"><i>✓</i><div><b>注册 GUI Action</b><span class="muted">表单、列表、图表、确认框</span></div></div>
+                <div class="step pending"><i>!</i><div><b>高风险动作审批</b><span class="muted">价格、合同、批量更新</span></div></div>
+                <div class="step"><i>✓</i><div><b>沙箱预演</b><span class="muted">最近 20 次通过率 93%</span></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>销售推进 Agent</h2><button class="btn primary" data-action="publishAgent">发布到 CRM</button></div>
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="field"><label>Topic</label><input value="商机推进与风险处置"></div>
+                <div class="field"><label>Scope</label><input value="本人团队可见客户与商机"></div>
+                <div class="field" style="grid-column:1 / -1"><label>Instruction</label><textarea>先读取当前对象上下文，再输出一句业务判断。所有建议必须生成 CRM 原生组件。阶段推进、字段更新、对客发送必须经过 GUI 确认。</textarea></div>
+              </div>
+              <div class="grid cols-3" style="margin-top:12px">
+                <div class="metric-mini"><span>Actions</span><b>17 个</b></div>
+                <div class="metric-mini"><span>Preview 通过率</span><b>93%</b></div>
+                <div class="metric-mini"><span>审计保留</span><b>180 天</b></div>
+              </div>
+              <div class="card" style="box-shadow:none;margin-top:12px">
+                <div class="card-head"><h3>Action Registry</h3><span class="badge blue">可治理</span></div>
+                <div class="card-body">
+                  <table>
+                    <thead><tr><th>动作</th><th>风险</th><th>确认方式</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td>createTask</td><td>低</td><td>一键确认</td><td><span class="badge green">启用</span></td></tr>
+                      <tr><td>updateOpportunityStage</td><td>高</td><td>二次确认</td><td><span class="badge green">启用</span></td></tr>
+                      <tr><td>sendExternalEmail</td><td>高</td><td>草稿审核</td><td><span class="badge amber">仅草稿</span></td></tr>
+                      <tr><td>changeContractPrice</td><td>极高</td><td>审批流</td><td><span class="badge red">待授权</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>预演对话</h2><span class="badge green">沙箱</span></div>
+            <div class="card-body">
+              <div class="bubble user" style="margin-left:auto">这单怎么推进到商务谈判？</div>
+              <div class="bubble" style="margin-top:8px">已生成推进组件：补财务负责人、生成邮件草稿、更新风险字段、阶段推进确认。</div>
+              <div class="artifact" style="margin-top:8px">
+                <div class="artifact-head"><b>Preview Result</b><span class="badge green">通过</span></div>
+                <div class="artifact-body">
+                  <div class="artifact-row"><span>权限</span><b>读取通过，写入需确认</b><span class="badge green">OK</span></div>
+                  <div class="artifact-row"><span>幻觉检测</span><b>所有结论有证据</b><span class="badge green">OK</span></div>
+                  <div class="artifact-row"><span>动作</span><b>4 个 GUI Artifact</b><span class="badge blue">生成</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <aside class="ai-panel">
+    <div class="ai-head">
+      <div class="ai-title"><div class="ai-orb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="4"/><path d="M9 13h.01M15 13h.01M9 17h6"/></svg></div><div><div>ShareAgent</div><small class="weak" id="agentMode">经营上下文已绑定</small></div></div>
+      <span class="badge green">在线</span>
+    </div>
+    <div class="ai-context">
+      <div class="ctx-pill"><span>页面</span><b id="ctxPage">经营首页</b></div>
+      <div class="ctx-pill"><span>角色</span><b>华东经理</b></div>
+      <div class="ctx-pill"><span>范围</span><b id="ctxScope">报表/商机/任务</b></div>
+      <div class="ctx-pill"><span>权限</span><b>2条不可见</b></div>
+    </div>
+    <div class="ai-feed" id="aiFeed" tabindex="0">
+      <div class="bubble user">为什么本月预测金额下降？</div>
+      <div class="bubble">主因是方案报价阶段停留过长。我已把静态报表改写成可下钻的风险商机列表，并准备了 3 条团队任务草稿。</div>
+      <div class="artifact">
+        <div class="artifact-head"><b>ForecastExplain</b><span class="badge blue">可执行</span></div>
+        <div class="artifact-body">
+          <div class="artifact-row"><span>路径</span><b>问数 -> 归因 -> 下钻 -> 派发</b><span></span></div>
+          <div class="artifact-row"><span>主因</span><b>报价阶段停留 31 天</b><span class="badge red">71%</span></div>
+          <div class="artifact-row"><span>动作</span><b>派发 3 条补链任务</b><button class="btn" data-action="assignTask">派发</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="ai-compose">
+      <div class="quick">
+        <button data-prompt="总结当前客户并生成拜访提纲">总结客户</button>
+        <button data-prompt="把当前筛选保存为周期监控">保存监控</button>
+        <button data-prompt="生成可回写的下一步动作">生成动作</button>
+      </div>
+      <div class="input-row">
+        <input id="aiInput" placeholder="输入业务意图，例如：找近30天无跟进的制造业重点客户">
+        <button class="btn primary" id="sendAi">发送</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="toast" id="toast">已完成</div>
+
+<div class="modal-mask" id="modalMask">
+  <div class="modal">
+    <div class="card-head"><h2 id="modalTitle">确认动作</h2><button class="btn ghost" id="closeModal">关闭</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot"><button class="btn" id="cancelModal">取消</button><button class="btn primary" id="confirmModal">确认执行</button></div>
+  </div>
+</div>
+
+<div class="command-palette" id="commandPalette">
+  <input id="commandInput" placeholder="搜索客户、商机、报表，或输入一句话让 AI 执行">
+  <div class="command-results">
+    <button class="command-item" data-screen-link="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg><div><b>找近30天无跟进的制造业重点客户</b><span>生成客户列表、批量任务、保存视图</span></div><span class="badge blue">AI</span></button>
+    <button class="command-item" data-screen-link="accounts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><div><b>打开浙江华正客户 360</b><span>客户画像、BANT、关系图谱、互动摘要</span></div><span class="badge green">对象</span></button>
+    <button class="command-item" data-screen-link="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19V5M4 19h16"/><rect x="7" y="11" width="3" height="5"/><rect x="12" y="7" width="3" height="9"/></svg><div><b>解释本月预测金额下降</b><span>可问报表、归因、下钻和派发</span></div><span class="badge amber">报表</span></button>
+  </div>
+</div>
+
+<script>
+const screens = {
+  dashboard: { title: "华东销售经营首页", crumb: "CRM / 经营首页", badge: "AI 可问可执行", page: "经营首页", scope: "报表 / 商机 / 任务", agent: "经营上下文已绑定" },
+  accounts: { title: "客户 360 与 AI 洞察", crumb: "CRM / 客户管理 / 浙江华正", badge: "AI Attributes", page: "客户 360", scope: "客户 / 联系人 / 互动", agent: "当前客户上下文已绑定" },
+  contacts: { title: "联系人列表与 AI 关系经营", crumb: "CRM / 联系人 / 关系经营", badge: "关系智能", page: "联系人列表", scope: "联系人 / 角色 / 互动 / 任务", agent: "联系人关系上下文已绑定" },
+  opportunities: { title: "商机管道", crumb: "CRM / 商机管理 / 管道", badge: "管道总览", page: "商机管道", scope: "阶段 / 金额 / 风险", agent: "管道视图已绑定" },
+  "opportunity-detail": { title: "浙江华正 · 商机详情推进流线", crumb: "CRM / 商机管理 / 浙江华正", badge: "AI 推进流线", page: "商机详情", scope: "商机 / 阶段 / 会议", agent: "当前商机上下文已绑定" },
+  list: { title: "智能列表与批量任务", crumb: "CRM / 客户列表 / AI 临时视图", badge: "自然语言筛选", page: "智能列表", scope: "列表 / 筛选器 / 选中对象", agent: "当前列表视图已绑定" },
+  create: { title: "AI 智能新建客户", crumb: "CRM / 新建 / 客户", badge: "字段预填", page: "新建客户", scope: "文本 / 查重 / 表单", agent: "新建表单上下文已绑定" },
+  record: { title: "销售记录自动生成", crumb: "CRM / 销售记录 / 语音提取", badge: "零录入", page: "销售记录", scope: "语音 / 会议 / 任务", agent: "销售记录上下文已绑定" },
+  reports: { title: "AI 原生可问报表", crumb: "CRM / 数据分析 / 预测金额", badge: "问数到行动", page: "可问报表", scope: "指标 / 口径 / 下钻", agent: "报表口径已绑定" },
+  mobile: { title: "移动拜访 AI 抽屉", crumb: "CRM / 移动端 / 拜访", badge: "半屏确认", page: "移动拜访", scope: "定位 / 语音 / 日程", agent: "移动拜访上下文已绑定" },
+  "ai-tasks": { title: "AI任务中心", crumb: "CRM / AI任务 / 全部记录", badge: "全链路审计", page: "AI任务", scope: "触发 / 产物 / 确认 / 回写", agent: "任务审计上下文已绑定" },
+  studio: { title: "Agent Studio 与动作治理", crumb: "蜂巢 / Agent Studio / 销售推进", badge: "可治理", page: "Agent Studio", scope: "Action / Plan / Audit", agent: "沙箱预演模式" }
+};
+
+const feed = document.getElementById("aiFeed");
+const toast = document.getElementById("toast");
+const modalMask = document.getElementById("modalMask");
+const modalTitle = document.getElementById("modalTitle");
+const modalBody = document.getElementById("modalBody");
+const commandPalette = document.getElementById("commandPalette");
+let currentScreenName = "dashboard";
+let currentDealStage = 2;
+let pendingAction = null;
+
+const stagePlaybooks = [
+  {
+    name: "线索",
+    en: "Lead",
+    title: "浙江华正 · 线索识别",
+    meta: "来源：行业展会扫码 + 官网咨询 · 首次触达 2 天",
+    pill: "待判定价值",
+    info: ["OPP-2026-HZ-0417", "浙江华正新材料", "待分配 -> 刘枫", "18%", "待确认", "王敏 · 待验证", "未进入竞品", "24小时内首触"],
+    insightTitle: "AI 线索质量判断",
+    badge: "高匹配 · 78%",
+    compare: [["行业匹配", "制造业 A 类画像"], ["需求信号", "一体化咨询明确"], ["数据完整", "联系人未验证"]],
+    suggestTitle: "AI 线索转化建议",
+    suggestions: [["核验线索", "确认王敏手机号、企业邮箱和采购角色"], ["匹配客户", "疑似已有客户浙江华正，建议合并到客户 360"], ["分配策略", "分配给制造业一组刘枫，24 小时内首触"], ["风险提示", "未验证联系人前不创建正式商机"]],
+    trigger: "触发条件：新增线索 + 企业名称命中高价值画像",
+    desc: "AI 先做查重、补全和价值评分，避免重复建档或低质量线索进入商机池。",
+    tasks: [["查", "客户查重", "匹配已有客户与历史互动"], ["补", "工商与联系人补全", "补行业、城市、联系人角色"], ["分", "推荐负责人", "按区域、行业、历史赢率分配"], ["触", "首触话术", "生成 3 句开场和确认问题"]],
+    actionText: "确认转为需求确认"
+  },
+  {
+    name: "需求确认",
+    en: "Qualification",
+    title: "浙江华正 · 需求确认",
+    meta: "BANT 完成 72% · 预算约 ¥120 万 · 决策时间 7 月底",
+    pill: "需求清晰",
+    info: ["OPP-2026-HZ-0417", "浙江华正新材料", "刘枫 · 华东一区", "46%", "2026-07-31", "王敏 / 赵磊", "销售易跟进中", "补财务审批人"],
+    insightTitle: "AI BANT 缺口",
+    badge: "Authority 弱",
+    compare: [["Budget", "预算范围明确"], ["Authority", "财务线缺失"], ["Need", "渠道协同强需求"]],
+    suggestTitle: "AI 需求确认建议",
+    suggestions: [["确认预算", "把预算拆成一期核心与二期扩展，降低一次性审批压力"], ["补决策链", "请采购总监引荐 CFO 或财务负责人"], ["验证痛点", "量化移动拜访、渠道协同、回款可视化的业务收益"], ["风险提示", "未确认财务审批人时，报价可能被价格战拖慢"]],
+    trigger: "触发条件：需求会议结束 + BANT 低于 80%",
+    desc: "AI 根据会议纪要和字段缺口生成补问清单，帮助销售把模糊需求变成可推进条件。",
+    tasks: [["问", "补问清单", "生成预算、审批、上线时间 6 个问题"], ["图", "决策链地图", "标记支持者、决策者、缺失角色"], ["会", "技术答疑会", "建议邀请 CIO 和业务负责人"], ["记", "字段回写", "更新预算、时间、需求摘要"]],
+    actionText: "确认进入方案报价"
+  },
+  {
+    name: "方案报价",
+    en: "Proposal",
+    title: "浙江华正 · 方案报价",
+    meta: "方案评审完成 · 金额 ¥1,030,000 · 停留 18 天",
+    pill: "超基准停留",
+    info: ["OPP-2026-HZ-0417", "浙江华正新材料", "刘枫 · 华东一区", "62%", "2026-07-31", "王敏 / 赵磊", "销售易 + 低代码", "6/21 补预算拆分"],
+    insightTitle: "AI 竞品对比",
+    badge: "销售易 + 低代码集成商",
+    compare: [["移动拜访", "我方优势"], ["价格", "竞品更低"], ["渠道协同", "我方独有"]],
+    suggestTitle: "AI 生成差异化方案建议",
+    suggestions: [["方案要点 1", "重点展示移动拜访 + 审批流定制能力（竞品短板）"], ["方案要点 2", "提供制造业同规模客户案例（华峰、桐昆）"], ["价格策略", "分两期报价，首期 ERP+CRM 核心 ¥103 万，二期扩展 ¥42 万"], ["风险提示", "预算审批链未确认前不宜进入商务谈判"]],
+    trigger: "触发条件：进入方案报价 + 停留超 14 天",
+    desc: "进入方案报价阶段且停留超基准时，AI 主动分析阻塞原因，并生成可确认的 GUI 动作。",
+    tasks: [["比", "竞品对比分析", "对比销售易、低代码集成商优劣势"], ["邮", "生成差异化邮件", "突出移动拜访和渠道协同优势"], ["超", "超期预警", "停留 18 天 > 基准 14 天，推送给经理"], ["清", "生成 Push 清单", "补决策链、发送方案、预约预算确认会"]],
+    actionText: "确认生成推进动作"
+  },
+  {
+    name: "商务谈判",
+    en: "Negotiation",
+    title: "浙江华正 · 商务谈判",
+    meta: "法务条款待审 · 客户要求 8% 折扣 · 回款节点未确认",
+    pill: "价格敏感",
+    info: ["OPP-2026-HZ-0417", "浙江华正新材料", "刘枫 · 销售总监协同", "68%", "2026-07-24", "王敏 / 赵磊 / 财务", "价格战风险", "确认折扣与回款"],
+    insightTitle: "AI 谈判策略",
+    badge: "折扣需授权",
+    compare: [["折扣空间", "建议不超过 5%"], ["条款风险", "验收口径需固化"], ["回款", "首款比例偏低"]],
+    suggestTitle: "AI 商务谈判建议",
+    suggestions: [["价格底线", "用二期权益替代直接降价，折扣控制在 5% 内"], ["条款建议", "把移动端上线和渠道协同验收拆成两个里程碑"], ["回款策略", "首款建议 40%，上线验收 40%，稳定运行 20%"], ["风险提示", "客户要求 8% 折扣时需销售总监审批"]],
+    trigger: "触发条件：客户提出折扣 + 合同条款进入法务",
+    desc: "AI 汇总历史成交折扣、同类客户条款和权限边界，给出可谈区间与审批路径。",
+    tasks: [["价", "生成报价底线", "对比同类制造业成交折扣"], ["法", "条款风险扫描", "标注验收、延期、回款风险"], ["批", "折扣审批草稿", "超过 5% 自动走审批"], ["邮", "谈判邮件草稿", "保留价值点并提出替代权益"]],
+    actionText: "生成谈判方案"
+  },
+  {
+    name: "赢单",
+    en: "Closed Won",
+    title: "浙江华正 · 赢单确认",
+    meta: "合同待签章 · 首款 ¥41.2 万 · 交付预计 2026-07-08 启动",
+    pill: "待签章回款",
+    info: ["OPP-2026-HZ-0417", "浙江华正新材料", "刘枫 · 交付预对接", "92%", "2026-07-08", "王敏 / 法务 / 财务", "竞品退出", "签章与首款回款"],
+    insightTitle: "AI 赢单校验",
+    badge: "回款优先",
+    compare: [["签章", "对方法务确认中"], ["首款", "40% 待回款"], ["交接", "实施团队待建群"]],
+    suggestTitle: "AI 赢单后动作",
+    suggestions: [["签章跟进", "生成双方签章材料清单和截止时间"], ["回款提醒", "自动创建首款回款任务并同步财务"], ["交付交接", "生成交付 handoff：范围、里程碑、风险、关键人"], ["风险提示", "未收到首款前不启动正式实施资源"]],
+    trigger: "触发条件：客户口头确认 + 合同版本冻结",
+    desc: "AI 把赢单从销售动作转成回款、签章和交付交接任务，减少口头赢单后的断点。",
+    tasks: [["签", "签章材料清单", "列出合同、报价单、授权书"], ["款", "首款回款任务", "提醒销售和财务跟进"], ["交", "交付交接包", "沉淀范围、里程碑、风险"], ["群", "客户项目群草稿", "建议成员与首次会议议程"]],
+    actionText: "生成赢单交接"
+  },
+  {
+    name: "交付",
+    en: "Delivery",
+    title: "浙江华正 · 交付启动",
+    meta: "项目启动会待安排 · 一期 8 周 · 关键风险：接口与主数据",
+    pill: "交付准备",
+    info: ["OPP-2026-HZ-0417", "浙江华正新材料", "刘枫 -> 项目经理", "100%", "2026-07-08", "赵磊 / 陈洁", "无销售竞品", "安排项目启动会"],
+    insightTitle: "AI 交付风险",
+    badge: "接口风险",
+    compare: [["范围", "一期核心清晰"], ["接口", "ERP 对接复杂"], ["关键用户", "业务负责人已确认"]],
+    suggestTitle: "AI 交付启动建议",
+    suggestions: [["启动会", "安排项目启动会，确认范围、里程碑、双方负责人"], ["风险清单", "提前收集 ERP 接口、主数据、审批流样例"], ["客户成功", "建立上线后 30 天采纳指标：拜访记录率、渠道跟进率"], ["风险提示", "接口资料不到位会影响 8 周上线承诺"]],
+    trigger: "触发条件：首款到账 + 项目进入交付池",
+    desc: "AI 将销售阶段沉淀的信息转成实施计划和客户成功指标，让 CRM 不在赢单后断档。",
+    tasks: [["会", "启动会议程", "自动生成双方议题和参会人"], ["险", "交付风险清单", "接口、主数据、审批流"], ["程", "8 周里程碑", "拆分蓝图、配置、联调、上线"], ["功", "客户成功指标", "定义上线后采纳与续费线索"]],
+    actionText: "生成交付计划"
+  }
+];
+
+const chatStarters = {
+  dashboard: {
+    prompt: "今天经营盘面有什么异常？",
+    reply: "本月预测金额低于目标 18%，主要风险集中在方案报价阶段。我可以直接下钻到高风险商机并生成任务。",
+    artifact: ["经营建议", [["关注", "报价停留 >30 天的 3 个商机", '<span class="badge red">优先</span>'], ["下一步", "解释预测下降并派发任务", '<button class="btn" data-action="explainForecast">分析</button>']]]
+  },
+  accounts: {
+    prompt: "浙江华正当前最该补什么？",
+    reply: "客户需求明确，但财务审批人缺失。建议先补关键人地图，再生成给采购总监的引荐话术。",
+    artifact: ["客户洞察", [["风险", "财务线未进入", '<span class="badge amber">68%</span>'], ["动作", "生成触达序列", '<button class="btn" data-action="generateSequence">生成</button>']]]
+  },
+  contacts: {
+    prompt: "浙江华正的决策链还缺谁？",
+    reply: "当前采购总监王敏是支持者，CIO 赵磊可参与技术答疑，但财务审批人缺失，是推进商务谈判的主要关系缺口。",
+    artifact: ["关系缺口", [["缺口", "财务审批人 / CFO 未识别", '<span class="badge red">高风险</span>'], ["动作", "生成触达计划并创建补关系任务", '<button class="btn" data-action="generateContactPlan">生成</button>']]]
+  },
+  opportunities: {
+    prompt: "管道里哪些商机最影响预测？",
+    reply: "我已聚焦报价阶段的 3 个高额风险商机：浙江华正、安徽创谱、杭州乐乾，可解释预测并下钻。",
+    artifact: ["管道预测", [["预测", "¥2,840 万，较目标 -18%", '<span class="badge red">偏低</span>'], ["动作", "解释下降并派任务", '<button class="btn" data-action="explainForecast">下钻</button>']]]
+  },
+  "opportunity-detail": {
+    prompt: "帮我生成浙江华正的推进方案，优先解决财务审批人缺失",
+    reply: "基于当前商机分析，推荐行动计划：",
+    plan: {
+      title: "推进建议 · 浙江华正",
+      badge: "3步推进",
+      steps: [
+        { text: "补齐财务审批人（截止6/18）", priority: "高优先", level: "high" },
+        { text: "发送差异化方案对比文档", priority: "中优先", level: "high" },
+        { text: "安排产品演示会议（6/19前）", priority: "中优先", level: "mid" }
+      ],
+      probability: "62% · +18pp",
+      action: "一键创建任务",
+      detailAction: "查看详情"
+    }
+  },
+  list: {
+    prompt: "这个 AI 列表下一步怎么处理？",
+    reply: "当前列表已筛出近 30 天无跟进的制造业重点客户。建议批量创建跟进任务，并保存为周期监控。",
+    artifact: ["列表动作", [["对象", "3 个风险客户", '<span class="badge amber">已选</span>'], ["动作", "批量创建任务", '<button class="btn" data-action="bulkCreateTask">创建</button>']]]
+  },
+  create: {
+    prompt: "帮我从线索文本里新建客户。",
+    reply: "我可以预填字段、查重并标记需确认字段。检测到疑似已有客户时，会建议合并而不是重复创建。",
+    artifact: ["智能新建", [["字段", "8 个字段可预填", '<span class="badge green">准备</span>'], ["动作", "预填客户表单", '<button class="btn" data-action="prefillCustomer">预填</button>']]]
+  },
+  record: {
+    prompt: "把这段拜访内容结构化。",
+    reply: "我会在 Chat 中生成结构化提取卡，确认后再回写客户动态、商机动态和任务。",
+    artifact: ["销售记录", [["输入", "语音 / 会议纪要", ""], ["动作", "提取到 Chat 并等待确认", '<button class="btn" data-action="extractRecord">提取</button>']]]
+  },
+  reports: {
+    prompt: "为什么预测金额下降？",
+    reply: "下降来自报价阶段停留超基准。我可以从指标归因直接下钻到商机与任务。",
+    artifact: ["可问报表", [["主因", "报价阶段停留 31 天", '<span class="badge red">71%</span>'], ["动作", "解释并派发", '<button class="btn" data-action="explainForecast">解释</button>']]]
+  },
+  mobile: {
+    prompt: "移动拜访结束后怎么回写？",
+    reply: "我会生成半屏确认表单，把销售记录、任务、日程和风险字段分开确认，避免误写。",
+    artifact: ["移动拜访", [["确认", "半屏表单", '<span class="badge blue">低打扰</span>'], ["动作", "生成回写", '<button class="btn" data-action="mobileCommit">生成</button>']]]
+  },
+  "ai-tasks": {
+    prompt: "最近 AI 都执行了哪些任务？",
+    reply: "这里记录全部 AI 任务的触发、依据、产物、确认人和回写结果，可用于审计与复盘。",
+    artifact: ["任务审计", [["今日", "18 条 AI 任务", '<span class="badge green">完整</span>'], ["异常", "1 条高风险动作待处理", '<span class="badge amber">关注</span>']]]
+  },
+  studio: {
+    prompt: "这个销售推进 Agent 能发布吗？",
+    reply: "当前预演通过率 93%，高风险动作已限制。建议先发布到华东销售团队并开启审计。",
+    artifact: ["Agent 发布", [["预演", "通过率 93%", '<span class="badge green">可发布</span>'], ["动作", "发布到 CRM", '<button class="btn" data-action="publishAgent">发布</button>']]]
+  }
+};
+
+function iconSpark() {
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/></svg>';
+}
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+function scrollFeedToBottom() {
+  requestAnimationFrame(() => {
+    feed.scrollTo({ top: feed.scrollHeight, behavior: "auto" });
+    requestAnimationFrame(() => {
+      feed.scrollTo({ top: feed.scrollHeight, behavior: "auto" });
+    });
+  });
+}
+
+function addBubble(text, user = false) {
+  const div = document.createElement("div");
+  div.className = "bubble" + (user ? " user" : "");
+  div.textContent = text;
+  feed.appendChild(div);
+  scrollFeedToBottom();
+}
+
+function addArtifact(title, rows, status = "可执行") {
+  const box = document.createElement("div");
+  box.className = "artifact";
+  const body = rows.map(row => `<div class="artifact-row"><span>${row[0]}</span><b>${row[1]}</b>${row[2] || "<span></span>"}</div>`).join("");
+  box.innerHTML = `<div class="artifact-head"><b>${title}</b><span class="badge blue">${status}</span></div><div class="artifact-body">${body}</div>`;
+  feed.appendChild(box);
+  scrollFeedToBottom();
+}
+
+function addPlanCard({ title, badge = "3步推进", steps, probability = "62% · +18pp", action = "一键创建任务", detailAction = "查看详情" }) {
+  const box = document.createElement("div");
+  box.className = "plan-card";
+  const stepHtml = steps.map((step, i) => `
+    <div class="plan-step">
+      <span>${i === 0 ? "优先" : i === 1 ? "协同" : "补充"}</span>
+      <strong>${step.text}</strong>
+      <span class="priority-pill ${step.level === "high" ? "high" : "mid"}">${step.priority}</span>
+    </div>
+  `).join("");
+  box.innerHTML = `
+    <div class="plan-head">
+      <b>${title}</b>
+      <span class="badge blue">${badge}</span>
+    </div>
+    ${stepHtml}
+    <div class="plan-prob"><span>收益</span><div class="plan-bar"><i style="width:62%"></i></div><span>${probability}</span></div>
+    <div class="plan-actions">
+      <button class="btn primary" data-action="assignTask">${action}</button>
+      <button class="btn" data-screen-link="opportunity-detail">${detailAction}</button>
+    </div>
+  `;
+  feed.appendChild(box);
+  scrollFeedToBottom();
+}
+
+function resetChatForScreen(name) {
+  const starter = chatStarters[name] || chatStarters.dashboard;
+  feed.innerHTML = "";
+  addBubble(starter.prompt, true);
+  addBubble(starter.reply);
+  if (starter.plan) addPlanCard(starter.plan);
+  else if (starter.artifact) addArtifact(starter.artifact[0], starter.artifact[1]);
+}
+
+function setDealStage(index, announce = true) {
+  const data = stagePlaybooks[index] || stagePlaybooks[2];
+  currentDealStage = index;
+  document.querySelectorAll(".stage-step").forEach((step, i) => {
+    step.classList.toggle("done", i < index);
+    step.classList.toggle("active", i === index);
+    step.setAttribute("aria-pressed", i === index ? "true" : "false");
+  });
+  document.querySelectorAll(".progress-line span").forEach((dot, i) => {
+    dot.classList.toggle("on", i <= index);
+  });
+  document.getElementById("dealStageTitle").textContent = data.title;
+  document.getElementById("dealStageMeta").textContent = data.meta;
+  document.getElementById("dealStagePill").textContent = data.pill;
+  ["dealCode", "dealAccount", "dealOwner", "dealProbability", "dealCloseDate", "dealContact", "dealCompetitor", "dealNextStep"].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = data.info?.[i] || "-";
+  });
+  document.getElementById("stageInsightTitle").textContent = data.insightTitle;
+  document.getElementById("stageInsightBadge").textContent = data.badge;
+  data.compare.forEach((item, i) => {
+    const card = document.getElementById(`stageCompare${i + 1}`);
+    if (!card) return;
+    card.querySelector("strong").textContent = item[0];
+    card.querySelector("span").textContent = item[1];
+  });
+  document.getElementById("stageSuggestTitle").textContent = data.suggestTitle;
+  data.suggestions.forEach((item, i) => {
+    document.getElementById(`stageSuggestLabel${i + 1}`).textContent = item[0];
+    document.getElementById(`stageSuggestText${i + 1}`).textContent = item[1];
+  });
+  document.getElementById("stageAutoTitle").textContent = `${data.name}阶段 AI 自动触发`;
+  document.getElementById("stageTrigger").textContent = data.trigger;
+  document.getElementById("stageAutoDesc").textContent = data.desc;
+  document.getElementById("stageTasks").innerHTML = data.tasks.map(task => `
+    <div class="auto-task"><div class="task-icon">${task[0]}</div><div><strong>${task[1]}</strong><span>${task[2]}</span></div></div>
+  `).join("");
+  document.getElementById("stagePrimaryAction").textContent = data.actionText;
+  if (announce) {
+    addBubble(`帮我看「${data.name}」阶段怎么推进`, true);
+    addBubble("基于当前阶段、互动记录和风险字段，推荐行动计划：");
+    addPlanCard({
+      title: `${data.name}建议 · 浙江华正`,
+      badge: "3步推进",
+      steps: [
+        { text: data.suggestions[0][1], priority: "高优先", level: "high" },
+        { text: data.suggestions[1][1], priority: "中优先", level: "high" },
+        { text: data.suggestions[2][1], priority: "中优先", level: "mid" }
+      ],
+      probability: index >= 3 ? "68% · +12pp" : "62% · +18pp",
+      action: index >= 3 ? data.actionText : "一键创建任务",
+      detailAction: "查看详情"
+    });
+  }
+}
+
+function switchScreen(name, options = {}) {
+  const cfg = screens[name];
+  if (!cfg) return;
+  currentScreenName = name;
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-" + name).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.screen === name));
+  document.getElementById("title").textContent = cfg.title;
+  document.getElementById("crumb").textContent = cfg.crumb;
+  document.getElementById("pageBadge").textContent = cfg.badge;
+  document.getElementById("ctxPage").textContent = cfg.page;
+  document.getElementById("ctxScope").textContent = cfg.scope;
+  document.getElementById("agentMode").textContent = cfg.agent;
+  if (options.refreshChat !== false) resetChatForScreen(name);
+  if (name === "opportunity-detail") setDealStage(currentDealStage, false);
+}
+
+function openModal(title, html, confirmText = "确认执行") {
+  modalTitle.textContent = title;
+  modalBody.innerHTML = html;
+  document.getElementById("confirmModal").textContent = confirmText;
+  modalMask.classList.add("show");
+}
+
+function setPendingAction(action) {
+  pendingAction = action;
+}
+
+function closeModal() {
+  modalMask.classList.remove("show");
+}
+
+function updateTaskLedger(matchText, statusClass, statusText) {
+  const item = [...document.querySelectorAll(".task-ledger-item")].find(row => row.querySelector("b")?.textContent.includes(matchText));
+  if (!item) return;
+  const status = item.querySelector(".task-status");
+  status.className = `task-status ${statusClass}`;
+  status.textContent = statusText;
+}
+
+function completePendingAction() {
+  if (!pendingAction) {
+    addBubble("动作已执行：结果已回写 CRM，并记录输入、上下文、AI 依据、确认人和执行结果。");
+    return;
+  }
+  const action = pendingAction;
+  pendingAction = null;
+  if (action.type === "assignTask") {
+    updateTaskLedger("生成 Push 清单", "done", "已完成");
+    updateTaskLedger("批量创建 3 条跟进任务", "done", "已完成");
+    addBubble("已创建 3 条跟进任务，并写入客户/商机动态。");
+    addArtifact("FollowupTasksCreated", [
+      ["刘枫", "补齐浙江华正财务负责人 · 6/18 18:00", '<span class="badge green">已创建</span>'],
+      ["吕鹏", "安徽创谱停滞复盘 · 补预算与竞品状态", '<span class="badge green">已创建</span>'],
+      ["顾结", "杭州乐乾补联系人 · 确认业务与采购角色", '<span class="badge green">已创建</span>'],
+      ["闭环", "任务、审计、AI任务中心均已更新", '<button class="btn" data-screen-link="ai-tasks">查看</button>']
+    ], "已回写");
+    showToast("3 条跟进任务已创建");
+    return;
+  }
+  if (action.type === "bulkCreateTask") {
+    updateTaskLedger("批量创建 3 条跟进任务", "done", "已完成");
+    addBubble("已按智能列表创建 3 条补数/跟进任务，负责人和截止时间已同步。");
+    addArtifact("ListTasksCreated", [
+      ["对象", "浙江华正、安徽创谱、杭州乐乾", '<span class="badge blue">3个</span>'],
+      ["任务", "补决策链、停滞复盘、补联系人", '<span class="badge green">已创建</span>'],
+      ["回写", "客户动态 / 商机动态 / AI任务中心", '<span class="badge green">完成</span>'],
+      ["下一步", "查看 AI 任务记录", '<button class="btn" data-screen-link="ai-tasks">查看</button>']
+    ], "已回写");
+    showToast("智能列表任务已创建");
+    return;
+  }
+  if (action.type === "confirmAdvance") {
+    updateTaskLedger("浙江华正推进到商务谈判", "done", "已完成");
+    addBubble("阶段推进已确认：浙江华正已进入商务谈判，并创建谈判准备任务。");
+    addArtifact("StageAdvanceClosedLoop", [
+      ["阶段", "方案报价 -> 商务谈判", '<span class="badge green">已推进</span>'],
+      ["任务", "补财务审批链、生成谈判邮件、更新风险字段", '<span class="badge green">3条</span>'],
+      ["审计", "保留 AI 依据、确认人、回滚窗口", '<button class="btn" data-screen-link="ai-tasks">查看</button>']
+    ], "已回写");
+    showToast("商机阶段已推进");
+    return;
+  }
+  if (action.type === "contactPlan") {
+    addBubble("已创建 3 条联系人触达任务，并将关系缺口写入浙江华正客户动态。");
+    addArtifact("ContactPlanCreated", [
+      ["王敏", "请求引荐财务负责人 · 今日 16:00", '<span class="badge green">已创建</span>'],
+      ["赵磊", "预约技术答疑并确认评估口径 · 明日 10:00", '<span class="badge green">已创建</span>'],
+      ["陈洁", "补充业务价值证明材料 · 6/18", '<span class="badge green">已创建</span>'],
+      ["闭环", "联系人动态、商机动态、AI任务审计已更新", '<button class="btn" data-screen-link="ai-tasks">查看</button>']
+    ], "已回写");
+    showToast("联系人触达任务已创建");
+    return;
+  }
+  if (action.type === "suggestTasks") {
+    addBubble("已创建 2 条 AI 推荐任务，并同步到任务看板。");
+    addArtifact("AITasksCreated", [
+      ["杭州乐乾", "补充采购经理联系人 · 截止 6/20", '<span class="badge green">已创建</span>'],
+      ["浙江华正", "安排技术方案演示会 · 邀请 CIO 和财务负责人", '<span class="badge green">已创建</span>'],
+      ["来源", "AI 任务建议 / 关系缺口 / 商机停留", '<button class="btn" data-screen-link="ai-tasks">查看</button>']
+    ], "已回写");
+    showToast("AI 推荐任务已创建");
+  }
+}
+
+function handleAction(action) {
+  if (action === "suggestTasks") {
+    setPendingAction({ type: "suggestTasks" });
+    addBubble("根据逾期任务和商机阻塞，生成 AI 任务建议", true);
+    addArtifact("TaskSuggestionDraft", [
+      ["建议 1", "杭州乐乾补充采购经理联系人", '<span class="badge amber">中风险</span>'],
+      ["建议 2", "浙江华正安排技术方案演示会", '<span class="badge red">高优先</span>'],
+      ["动作", "创建 2 条任务并写入看板", '<button class="btn" data-action="confirmSuggestedTasks">确认</button>']
+    ], "待确认");
+    openModal("确认创建 AI 推荐任务", `<div class="risk-list">
+      <div class="action-row"><div class="checkbox"></div><div><b>杭州乐乾：补充采购经理联系人</b><span class="muted">截止 2026-06-20，补齐采购决策角色</span></div><span class="badge amber">中风险</span></div>
+      <div class="action-row"><div class="checkbox"></div><div><b>浙江华正：安排技术方案演示会</b><span class="muted">邀请 CIO 与财务负责人共同评审</span></div><span class="badge red">高优先</span></div>
+    </div>`);
+  }
+  if (action === "confirmSuggestedTasks") {
+    setPendingAction({ type: "suggestTasks" });
+    openModal("确认创建 AI 推荐任务", `<div class="risk-list">
+      <div class="action-row"><div class="checkbox"></div><div><b>杭州乐乾：补充采购经理联系人</b><span class="muted">截止 2026-06-20，补齐采购决策角色</span></div><span class="badge amber">中风险</span></div>
+      <div class="action-row"><div class="checkbox"></div><div><b>浙江华正：安排技术方案演示会</b><span class="muted">邀请 CIO 与财务负责人共同评审</span></div><span class="badge red">高优先</span></div>
+    </div>`);
+  }
+  if (action === "explainForecast") {
+    addBubble("为什么本月预测金额下降？", true);
+    addBubble("主因是报价阶段停留过长，影响预测金额 ¥426 万。我建议先处理浙江华正这类高额阻塞商机。");
+    addPlanCard({
+      title: "预测修复计划 · 高风险商机",
+      badge: "3个对象",
+      steps: [
+        { text: "浙江华正：补齐财务审批人（6/18前）", priority: "高优先", level: "high" },
+        { text: "安徽创谱：复盘 21 天未跟进原因", priority: "高优先", level: "high" },
+        { text: "杭州乐乾：补采购联系人并确认POC", priority: "中优先", level: "mid" }
+      ],
+      probability: "预测回补 ¥426万",
+      action: "创建跟进任务",
+      detailAction: "查看管道"
+    });
+    showToast("已生成报表归因与任务草稿");
+  }
+  if (action === "assignTask") {
+    setPendingAction({ type: "assignTask" });
+    openModal("批量派发团队任务", `<div class="risk-list">
+      <div class="action-row"><div class="checkbox"></div><div><b>刘枫：补齐浙江华正财务负责人</b><span class="muted">截止 2026-06-18 18:00</span></div><span class="badge green">低风险</span></div>
+      <div class="action-row"><div class="checkbox"></div><div><b>吕鹏：安徽创谱停滞复盘</b><span class="muted">补充竞品和预算状态</span></div><span class="badge green">低风险</span></div>
+      <div class="action-row"><div class="checkbox"></div><div><b>顾结：杭州乐乾补联系人</b><span class="muted">确认业务负责人和采购角色</span></div><span class="badge green">低风险</span></div>
+    </div>`);
+    addArtifact("TaskConfirmCard", [["创建数量", "3 条任务", '<span class="badge green">低风险</span>'], ["审计", "记录报表口径、AI 依据、确认人", ""]]);
+  }
+  if (action === "createContactTask") {
+    addBubble("补关系任务已准备：优先识别财务审批人，并确认技术评估人与业务负责人态度。");
+    addArtifact("ContactGapTask", [
+      ["缺口", "财务审批人未知", '<span class="badge red">关键</span>'],
+      ["建议", "由王敏引荐 CFO，赵磊参与技术答疑", '<span class="badge blue">路径</span>'],
+      ["动作", "生成触达计划", '<button class="btn" data-action="generateContactPlan">生成</button>']
+    ]);
+    showToast("联系人补全任务已准备");
+  }
+  if (action === "applyContactAI") {
+    const query = document.getElementById("contactQueryInput")?.value || "识别关键联系人关系缺口";
+    addBubble(query, true);
+    addBubble("已分析 4 位联系人、11 条互动记录和当前商机阶段：财务审批人缺失，王敏适合作为引荐路径。");
+    addArtifact("RelationshipIntelligence", [
+      ["支持者", "王敏 · 采购总监 · 最近 6/15 方案会", '<span class="badge green">强</span>'],
+      ["技术线", "赵磊 · CIO · 需预约技术答疑", '<span class="badge blue">可推进</span>'],
+      ["缺口", "财务审批人未识别", '<span class="badge red">阻塞</span>'],
+      ["下一步", "生成触达计划并创建任务", '<button class="btn" data-action="generateContactPlan">生成</button>']
+    ]);
+    showToast("联系人关系洞察已生成");
+  }
+  if (action === "generateContactPlan") {
+    setPendingAction({ type: "contactPlan" });
+    addArtifact("ContactOutreachPlan", [
+      ["第 1 步", "让王敏引荐财务负责人，说明预算拆分目的", '<span class="badge amber">关键</span>'],
+      ["第 2 步", "邀请赵磊参加技术答疑，锁定接口与安全问题", ""],
+      ["第 3 步", "给陈洁发送业务价值材料，强化一线使用收益", ""]
+    ], "待确认");
+    openModal("确认创建联系人触达任务", `<div class="risk-list">
+      <div class="action-row"><div class="checkbox"></div><div><b>王敏：请求引荐财务负责人</b><span class="muted">今日 16:00 前，附预算拆分话术</span></div><span class="badge green">低风险</span></div>
+      <div class="action-row"><div class="checkbox"></div><div><b>赵磊：预约技术答疑</b><span class="muted">确认接口、安全和实施周期疑问</span></div><span class="badge green">低风险</span></div>
+      <div class="action-row"><div class="checkbox"></div><div><b>陈洁：发送业务价值材料</b><span class="muted">强化移动拜访和渠道协同收益</span></div><span class="badge green">低风险</span></div>
+    </div>`);
+  }
+  if (action === "prepareVisit") {
+    addBubble("总结当前客户并生成拜访提纲", true);
+    addArtifact("VisitPrepCard", [
+      ["客户目标", "确认预算审批链与一期上线时间", ""],
+      ["关键问题", "财务负责人未进入，实施周期担忧", '<span class="badge amber">重点</span>'],
+      ["建议话术", "用行业模板证明 8 周内可完成一期", ""]
+    ], "拜访准备");
+  }
+  if (action === "refreshBant") {
+    showToast("BANT 已基于最新会议纪要刷新");
+    addBubble("BANT 已刷新：Authority 从 58% 提升到 61%，但仍需补财务审批人。");
+  }
+  if (action === "generateSequence") {
+    addArtifact("OutreachSequence", [
+      ["第 1 步", "发预算拆分邮件给王敏", ""],
+      ["第 2 步", "邀请 CIO 参加技术答疑", ""],
+      ["第 3 步", "请求引荐财务负责人", '<span class="badge amber">关键</span>']
+    ], "触达序列");
+  }
+  if (action === "advanceDeal") {
+    switchScreen("opportunity-detail");
+  }
+  if (action === "confirmAdvance") {
+    setPendingAction({ type: "confirmAdvance" });
+    openModal("二次确认：阶段推进与字段回写", `<p class="muted">即将把浙江华正商机从「方案报价」推进到「商务谈判」，并回写风险字段「预算审批链缺失」。该动作会记录 AI 依据、确认人和回滚窗口。</p>
+    <table><tbody><tr><td>影响对象</td><td><b>1 个商机、2 个任务、1 封邮件草稿</b></td></tr><tr><td>回滚</td><td><b>24 小时内可回滚阶段与字段</b></td></tr><tr><td>审批</td><td><b>无需审批，但需本人二次确认</b></td></tr></tbody></table>`);
+  }
+  if (action === "showEvidence") {
+    openModal("AI 判断证据来源", `<table><thead><tr><th>来源</th><th>摘要</th><th>置信度</th></tr></thead><tbody><tr><td>6/15 会议纪要</td><td>客户认可移动拜访与渠道协同</td><td><span class="badge green">强</span></td></tr><tr><td>销售记录</td><td>预算约 120 万，财务负责人未进入</td><td><span class="badge green">强</span></td></tr><tr><td>同类商机</td><td>方案报价阶段平均停留 18 天</td><td><span class="badge amber">参考</span></td></tr></tbody></table>`, "我知道了");
+  }
+  if (action === "applyAiFilter") {
+    if (currentScreenName !== "list") switchScreen("list");
+    const query = document.getElementById("listQueryInput")?.value || "找近30天无跟进、制造业、重点客户，并生成跟进计划";
+    addBubble(query, true);
+    addBubble("已解析为 6 个筛选条件，命中 4 个客户；其中 3 个存在缺失数据或跟进风险，已自动选中。");
+    addArtifact("SmartListFilter", [
+      ["条件", "30天无跟进 / 制造业 / 重点客户 / 缺决策链", '<span class="badge blue">6项</span>'],
+      ["命中", "4 个客户，已选 3 个风险对象", '<span class="badge amber">待处理</span>'],
+      ["下一步", "创建补数与跟进任务", '<button class="btn" data-action="bulkCreateTask">创建</button>']
+    ]);
+    showToast("AI 临时视图已生成");
+  }
+  if (action === "applyMissingFilter") {
+    const field = document.getElementById("missingField")?.value || "决策链 / 财务审批人";
+    const type = document.getElementById("missingType")?.value || "为空或置信度低于 80%";
+    const range = document.getElementById("missingRange")?.value || "近 30 天";
+    const intent = document.getElementById("missingIntent")?.value || "制造业重点客户";
+    addBubble(`筛选 ${range} 内「${field}」${type}的客户，条件：${intent}`, true);
+    addBubble("已更新智能列表：命中 3 个重点客户，其中浙江华正和杭州乐乾缺关键联系人，安徽创谱缺下一步跟进行动。");
+    addArtifact("MissingDataFilter", [
+      ["字段", field, '<span class="badge amber">缺失</span>'],
+      ["命中", "3 个客户 / 2 个商机", '<span class="badge blue">已筛选</span>'],
+      ["动作", "补联系人、补决策链、派跟进任务", '<button class="btn" data-action="bulkCreateTask">创建</button>']
+    ]);
+    showToast("已应用缺失数据筛选");
+  }
+  if (action === "bulkCreateTask") {
+    setPendingAction({ type: "bulkCreateTask" });
+    openModal("确认创建 3 条客户跟进任务", `<div class="risk-list"><div class="risk"><div><b>任务模板</b><p>重点客户风险跟进，按客户负责人分派。</p></div><span class="badge green">低风险</span></div><div class="risk"><div><b>审计</b><p>保留筛选条件、AI 依据、确认时间和创建结果。</p></div><span class="badge blue">完整</span></div></div>`);
+  }
+  if (action === "saveView") {
+    showToast("已保存 AI 视图：制造业重点客户风险跟进");
+    addBubble("视图已保存。后续可设置为每天 9 点自动检查新增风险客户。");
+  }
+  if (action === "prefillCustomer") {
+    document.getElementById("fAccount").value = "浙江华正新材料股份有限公司";
+    document.getElementById("fIndustry").value = "制造业";
+    document.getElementById("fCity").value = "浙江湖州";
+    document.getElementById("fContact").value = "王敏 / 采购总监";
+    document.getElementById("fBudget").value = "约 ¥1,200,000";
+    document.getElementById("fDate").value = "2026-07-31";
+    document.getElementById("fDuplicate").value = "疑似已有客户，匹配度 91%";
+    document.getElementById("fNeed").value = "ERP+CRM 一体化方案，关注移动拜访、渠道协同和实施周期。";
+    addArtifact("SmartForm Prefill", [["字段", "8 个字段已预填", '<span class="badge green">完成</span>'], ["查重", "发现疑似已有客户", '<span class="badge amber">91%</span>']]);
+    showToast("表单已预填，需确认字段已标记");
+  }
+  if (action === "submitCustomer") {
+    openModal("提交客户前确认", `<p class="muted">检测到疑似已有客户。建议不要创建重复客户，而是打开已有客户并补充联系人、预算和需求字段。</p><div class="risk"><div><b>推荐动作</b><p>合并到现有客户，并自动新建一条商机和拜访任务。</p></div><span class="badge blue">推荐</span></div>`, "合并并回写");
+  }
+  if (action === "extractRecord") {
+    addBubble("提取当前销售记录，并生成可回写字段", true);
+    addBubble("已从原始语音转写中提取 6 类结构化字段。请先确认，确认后我再回写 CRM。");
+    addArtifact("SalesRecordExtract", [
+      ["客户", "浙江华正 · 方案评审会", '<span class="badge green">已识别</span>'],
+      ["联系人", "王敏（采购总监）、赵磊（CIO）", '<span class="badge blue">2人</span>'],
+      ["关注点", "移动拜访、渠道协同、实施周期", ""],
+      ["风险", "财务负责人缺失；实施周期 >8 周", '<span class="badge amber">待处理</span>'],
+      ["承诺", "周五前补实施里程碑和预算拆分", ""],
+      ["下一步", "下周二技术答疑，邀请售前", '<button class="btn" data-action="commitRecord">确认回写</button>']
+    ], "待确认");
+    showToast("提取结果已发送到 Chat");
+  }
+  if (action === "commitRecord") {
+    showToast("销售记录已回写客户动态");
+    addBubble("销售记录已回写客户动态和商机动态，并保留 AI 提取证据。");
+    addArtifact("SalesRecordCommit", [["回写位置", "客户动态 / 商机动态", '<span class="badge green">完成</span>'], ["新增任务", "实施里程碑、技术答疑", '<span class="badge green">2条</span>'], ["下一步", "生成跟进邮件或创建日程", '<button class="btn" data-action="makeFollowupEmail">邮件</button>']]);
+  }
+  if (action === "makeFollowupEmail") {
+    addArtifact("EmailDraft", [["主题", "浙江华正一体化方案后续材料", ""], ["正文", "补充实施里程碑、预算拆分和下周技术答疑安排", ""], ["状态", "草稿，不自动发送", '<span class="badge green">可编辑</span>']]);
+  }
+  if (action === "createNextMeeting") {
+    showToast("已创建下周二 10:00 技术答疑日程草稿");
+    addBubble("已创建下周二 10:00 技术答疑日程草稿，待你确认参会人和会议地点。");
+    addArtifact("MeetingDraft", [["时间", "下周二 10:00-11:00", ""], ["参会", "赵磊、王敏、售前顾问", '<span class="badge blue">建议</span>'], ["议题", "接口、安全、实施里程碑", '<span class="badge green">已生成</span>']]);
+  }
+  if (action === "saveReportAgent") {
+    switchScreen("studio");
+  }
+  if (action === "mobileCommit") {
+    addBubble("移动端已生成半屏表单：销售记录、任务、日程和风险字段分开确认。");
+    showToast("半屏表单已生成");
+  }
+  if (action === "publishAgent") {
+    openModal("发布销售推进 Agent", `<div class="risk-list"><div class="risk"><div><b>发布范围</b><p>华东销售团队，详情页、列表页、报表页可调用。</p></div><span class="badge blue">团队</span></div><div class="risk"><div><b>高风险限制</b><p>合同价变更动作未授权，发布后仍不可调用。</p></div><span class="badge amber">受限</span></div><div class="risk"><div><b>监控</b><p>保留审计、失败重试、用户反馈和命中率。</p></div><span class="badge green">开启</span></div></div>`, "发布");
+  }
+}
+
+document.querySelectorAll(".nav-item").forEach(btn => btn.addEventListener("click", () => switchScreen(btn.dataset.screen)));
+document.body.addEventListener("click", e => {
+  const stageEl = e.target.closest("[data-stage-index]");
+  const actionEl = e.target.closest("[data-action]");
+  const linkEl = e.target.closest("[data-screen-link]");
+  if (stageEl) setDealStage(Number(stageEl.dataset.stageIndex));
+  if (actionEl) handleAction(actionEl.dataset.action);
+  if (linkEl) {
+    switchScreen(linkEl.dataset.screenLink);
+    commandPalette.classList.remove("show");
+  }
+});
+
+document.getElementById("sendAi").addEventListener("click", () => {
+  const input = document.getElementById("aiInput");
+  const text = input.value.trim() || "生成可回写的下一步动作";
+  addBubble(text, true);
+  if (text.includes("联系人") || text.includes("关系") || text.includes("决策链")) handleAction("applyContactAI");
+  else if (text.includes("客户") || text.includes("总结")) handleAction("prepareVisit");
+  else if (text.includes("筛选") || text.includes("近30天") || text.includes("列表")) handleAction("applyAiFilter");
+  else if (text.includes("下降") || text.includes("预测") || text.includes("报表")) handleAction("explainForecast");
+  else if (text.includes("推进") || text.includes("商务谈判")) handleAction("advanceDeal");
+  else addArtifact("ActionPlan", [["理解", text, '<span class="badge blue">已解析</span>'], ["输出", "生成 GUI 组件并等待确认", ""]]);
+  input.value = "";
+});
+
+document.querySelectorAll(".quick button").forEach(btn => btn.addEventListener("click", () => {
+  document.getElementById("aiInput").value = btn.dataset.prompt;
+  document.getElementById("sendAi").click();
+}));
+
+document.getElementById("askPage").addEventListener("click", () => {
+  addBubble("请基于当前页面给我一个可执行建议", true);
+  addArtifact("PageAwareSuggestion", [["上下文", document.getElementById("ctxPage").textContent, ""], ["建议", "先处理最高金额且存在明确阻塞的对象", ""], ["动作", "生成任务、邮件草稿、字段回写确认", '<span class="badge blue">可执行</span>']]);
+});
+
+document.getElementById("runScenario").addEventListener("click", () => {
+  addBubble("演示：从报表下降到商机推进，再到任务派发", true);
+  setTimeout(() => handleAction("explainForecast"), 300);
+  setTimeout(() => handleAction("advanceDeal"), 1000);
+  setTimeout(() => showToast("任务链已跑通：问数 -> 下钻 -> 生成动作 -> GUI 确认"), 1600);
+});
+
+document.getElementById("openEvidence").addEventListener("click", () => handleAction("showEvidence"));
+document.getElementById("openCommand").addEventListener("click", () => {
+  commandPalette.classList.add("show");
+  setTimeout(() => document.getElementById("commandInput").focus(), 20);
+});
+document.getElementById("commandInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    const text = e.currentTarget.value.trim();
+    commandPalette.classList.remove("show");
+    addBubble(text || "找近30天无跟进的制造业重点客户", true);
+    handleAction(text.includes("下降") ? "explainForecast" : "applyAiFilter");
+  }
+  if (e.key === "Escape") commandPalette.classList.remove("show");
+});
+document.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    commandPalette.classList.toggle("show");
+    if (commandPalette.classList.contains("show")) document.getElementById("commandInput").focus();
+  }
+  if (e.key === "Escape") {
+    commandPalette.classList.remove("show");
+    closeModal();
+  }
+});
+document.getElementById("closeModal").addEventListener("click", closeModal);
+document.getElementById("cancelModal").addEventListener("click", closeModal);
+document.getElementById("confirmModal").addEventListener("click", () => {
+  closeModal();
+  completePendingAction();
+});
+modalMask.addEventListener("click", e => {
+  if (e.target === modalMask) closeModal();
+});
+document.querySelector(".ai-panel").addEventListener("wheel", e => {
+  if (e.target.closest(".ai-feed") || e.target.closest(".ai-compose")) return;
+  const canScroll = feed.scrollHeight > feed.clientHeight;
+  if (!canScroll) return;
+  e.preventDefault();
+  feed.scrollBy({ top: e.deltaY, behavior: "auto" });
+}, { passive: false });
+resetChatForScreen(currentScreenName);
+setDealStage(currentDealStage, false);
+</script>
+</body>
+</html>
